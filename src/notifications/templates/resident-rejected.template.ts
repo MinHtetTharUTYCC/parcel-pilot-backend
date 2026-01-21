@@ -1,5 +1,5 @@
-import { Template, TemplateData } from '../interfaces/template.interface';
-import { isValidUrl, escapeHtml } from 'src/common/utils';
+import { Template, TemplateData } from "../interfaces/template.interface";
+import { isValidUrl, escapeHtml } from "src/common/utils";
 
 export function getAccountRejectedTemplate(data: TemplateData): Template {
   const { recipientName, unitNumber, rejectedAt, actionUrl } = data;
@@ -9,15 +9,15 @@ export function getAccountRejectedTemplate(data: TemplateData): Template {
   const escapedUnitNumber = escapeHtml(unitNumber);
 
   const formattedDate = rejectedAt
-    ? new Date(rejectedAt).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    : '';
+    ? new Date(rejectedAt).toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
   const validActionUrl = isValidUrl(actionUrl) ? actionUrl : null;
 
@@ -80,12 +80,13 @@ export function getAccountRejectedTemplate(data: TemplateData): Template {
           <div style="text-align: center; margin: 35px 0;">
             <p><strong>What's Next?</strong></p>
             <p>You may reapply after addressing the issues mentioned above.</p>
-            ${validActionUrl
-      ? `
+            ${
+              validActionUrl
+                ? `
             <a href="${validActionUrl}" class="button" style="color: white; margin-top: 15px;">Review Application Guidelines</a>
             `
-      : ''
-    }
+                : ""
+            }
           </div>
           
           <div class="footer">

@@ -1,4 +1,4 @@
 export class UpdateUnitDto {
-	residentId: string;
-	unitNumber: string;
+  residentId: string;
+  unitNumber: string;
 }

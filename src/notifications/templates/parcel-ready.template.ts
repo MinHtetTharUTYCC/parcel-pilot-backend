@@ -1,6 +1,6 @@
-import { Attachment } from 'resend';
-import { Template, TemplateData } from '../interfaces/template.interface';
-import { getFilenameFromUrl, isValidUrl, escapeHtml } from 'src/common/utils';
+import { Attachment } from "resend";
+import { Template, TemplateData } from "../interfaces/template.interface";
+import { getFilenameFromUrl, isValidUrl, escapeHtml } from "src/common/utils";
 
 export function getParcelReadyTemplate(data: TemplateData): Template {
   const {
@@ -21,23 +21,23 @@ export function getParcelReadyTemplate(data: TemplateData): Template {
 
   // Format date if provided
   const formattedDate = registeredAt
-    ? new Date(registeredAt).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    : '';
+    ? new Date(registeredAt).toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
   const attachments: Attachment[] = imgUrl
     ? [
-      {
-        path: imgUrl,
-        filename: getFilenameFromUrl(imgUrl),
-      },
-    ]
+        {
+          path: imgUrl,
+          filename: getFilenameFromUrl(imgUrl),
+        },
+      ]
     : [];
 
   const validActionUrl = isValidUrl(actionUrl) ? actionUrl : null;
@@ -62,31 +62,32 @@ export function getParcelReadyTemplate(data: TemplateData): Template {
             <h1>📦 New Parcel Arrived!</h1>
           </div>
           <div class="content">
-            <p>Hello ${escapedRecipientName || 'Valued Resident'},</p>
+            <p>Hello ${escapedRecipientName || "Valued Resident"},</p>
             
             <p>You have a new parcel waiting for pickup at your building.</p>
             
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3>Parcel Details:</h3>
-              <p><strong>Unit Number:</strong> ${escapedUnitNumber || 'N/A'}</p>
-              <p><strong>Courier:</strong> ${escapedCourier || 'N/A'}</p>
+              <p><strong>Unit Number:</strong> ${escapedUnitNumber || "N/A"}</p>
+              <p><strong>Courier:</strong> ${escapedCourier || "N/A"}</p>
               <p><strong>Registered:</strong> ${formattedDate}</p>
             </div>
             
             <div style="text-align: center;">
               <p><strong>Your Pickup Code:</strong></p>
-              <div class="code">${escapedPickupCode || 'N/A'}</div>
+              <div class="code">${escapedPickupCode || "N/A"}</div>
               <p>Please present this code when picking up your parcel.</p>
             </div>
             
-            ${validActionUrl
-      ? `
+            ${
+              validActionUrl
+                ? `
             <div style="text-align: center; margin-top: 30px;">
               <a href="${validActionUrl}" class="button">View Parcel Details</a>
     </div>
       `
-      : ''
-    }
+                : ""
+            }
             
             <div class="footer">
               <p><strong>Pickup Location:</strong> Building Lobby / Concierge Desk</p>
@@ -100,7 +101,7 @@ export function getParcelReadyTemplate(data: TemplateData): Template {
     `;
 
   return {
-    subject: `📦 New Parcel Ready for Pickup${unitNumber ? ` - ${unitNumber}` : ''}`,
+    subject: `📦 New Parcel Ready for Pickup${unitNumber ? ` - ${unitNumber}` : ""}`,
     html,
     attachments: attachments,
   };

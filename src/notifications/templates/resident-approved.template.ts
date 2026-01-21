@@ -1,5 +1,5 @@
-import { Template, TemplateData } from '../interfaces/template.interface';
-import { isValidUrl, escapeHtml } from 'src/common/utils';
+import { Template, TemplateData } from "../interfaces/template.interface";
+import { isValidUrl, escapeHtml } from "src/common/utils";
 
 export function getAccountApprovedTemplate(data: TemplateData): Template {
   const { recipientName, unitNumber, approvedAt, actionUrl } = data;
@@ -9,15 +9,15 @@ export function getAccountApprovedTemplate(data: TemplateData): Template {
   const escapedUnitNumber = escapeHtml(unitNumber);
 
   const formattedDate = approvedAt
-    ? new Date(approvedAt).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    : '';
+    ? new Date(approvedAt).toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
   const validActionUrl = isValidUrl(actionUrl) ? actionUrl : null;
 
@@ -78,12 +78,13 @@ export function getAccountApprovedTemplate(data: TemplateData): Template {
           
           <div style="text-align: center; margin: 35px 0;">
             <p><strong>Get started by accessing your account:</strong></p>
-            ${validActionUrl
-      ? `
+            ${
+              validActionUrl
+                ? `
             <a href="${validActionUrl}" class="button" style="color: white;">Access Your Account</a>
             `
-      : ''
-    }
+                : ""
+            }
           </div>
           
           <div class="footer">

@@ -1,6 +1,6 @@
-import { Attachment } from 'resend';
-import { Template, TemplateData } from '../interfaces/template.interface';
-import { getFilenameFromUrl, isValidUrl, escapeHtml } from 'src/common/utils';
+import { Attachment } from "resend";
+import { Template, TemplateData } from "../interfaces/template.interface";
+import { getFilenameFromUrl, isValidUrl, escapeHtml } from "src/common/utils";
 
 export function getParcelReturnedTemplate(data: TemplateData): Template {
   const { recipientName, unitNumber, returnedAt, courier, imgUrl, actionUrl } =
@@ -12,23 +12,23 @@ export function getParcelReturnedTemplate(data: TemplateData): Template {
   const escapedCourier = escapeHtml(courier);
 
   const formattedDate = returnedAt
-    ? new Date(returnedAt).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-    : '';
+    ? new Date(returnedAt).toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
 
   const attachments: Attachment[] = imgUrl
     ? [
-      {
-        path: imgUrl,
-        filename: getFilenameFromUrl(imgUrl),
-      },
-    ]
+        {
+          path: imgUrl,
+          filename: getFilenameFromUrl(imgUrl),
+        },
+      ]
     : [];
 
   const validActionUrl = isValidUrl(actionUrl) ? actionUrl : null;
@@ -55,16 +55,17 @@ export function getParcelReturnedTemplate(data: TemplateData): Template {
             <h1>Parcel Returned to Sender</h1>
           </div>
           <div class="content">
-          <p>Hello ${escapedRecipientName || 'Valued Resident'},</p>
+          <p>Hello ${escapedRecipientName || "Valued Resident"},</p>
           
           <p>We wanted to inform you that your parcel has been returned to the sender.</p>
           
           <div class="info-box">
             <h3>Return Details:</h3>
-            <p><strong>Unit Number:</strong> ${escapedUnitNumber || 'N/A'}</p>
-            <p><strong>Courier:</strong> ${escapedCourier || 'N/A'}</p>
-              <p><strong>Status:</strong> <span class="status-returned">RETURNED TO SENDER</span></p>
-            </div>
+            <p><strong>Unit Number:</strong> ${escapedUnitNumber || "N/A"}</p>
+            <p><strong>Courier:</strong> ${escapedCourier || "N/A"}</p>
+            <p><strong>Returned at:</strong> ${formattedDate}</p>
+            <p><strong>Status:</strong> <span class="status-returned">RETURNED TO SENDER</span></p>
+          </div>
             
             <p>Common reasons for parcel returns include:</p>
             <ul>
@@ -74,14 +75,15 @@ export function getParcelReturnedTemplate(data: TemplateData): Template {
               <li>Parcel was damaged or opened</li>
             </ul>
             
-            ${validActionUrl
-      ? `
+            ${
+              validActionUrl
+                ? `
             <div style="text-align: center; margin-top: 30px;">
               <a href="${validActionUrl}" class="button">View Parcel Details</a>
             </div>
             `
-      : ''
-    }
+                : ""
+            }
             
             <div class="footer">
               <p><strong>What to do next:</strong></p>
@@ -98,7 +100,7 @@ export function getParcelReturnedTemplate(data: TemplateData): Template {
     `;
 
   return {
-    subject: unitNumber ? `Parcel Returned - ${unitNumber}` : 'Parcel Returned',
+    subject: unitNumber ? `Parcel Returned - ${unitNumber}` : "Parcel Returned",
     html,
     attachments,
   };

@@ -1,3 +1,3 @@
 export class UpdateProfileDto {
-	name?: string;
+  name?: string;
 }
