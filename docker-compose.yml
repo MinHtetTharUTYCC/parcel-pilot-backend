@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
     backend:
-        build:
-            context: .
-            dockerfile: Dockerfile
+        image: ghcr.io/minhtetthar/parcel-pilot-backend:latest
         container_name: parcel_pilot_backend
         ports:
             - '6000:6000'
