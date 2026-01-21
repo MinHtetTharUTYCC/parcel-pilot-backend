@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { paginatedResponse, successResponse } from '@parcel-pilot/shared';
+import { paginatedResponse, successResponse } from '../../shared';
 
 @Injectable()
 export class SuccessResponseInterceptor implements NestInterceptor {

@@ -14,7 +14,7 @@ docker-compose ps
 # Check API health endpoint
 echo ""
 echo "2. API Health Check:"
-API_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health)
+API_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:6000/health)
 if [ "$API_RESPONSE" == "200" ]; then
     echo "✓ API is healthy (HTTP $API_RESPONSE)"
 else
@@ -33,8 +33,8 @@ free -h | awk 'NR==2 {print "Used: " $3 " / " $2}'
 
 # Check container logs (last 10 lines)
 echo ""
-echo "5. Recent API Logs:"
-docker-compose logs --tail=10 api
+echo "5. Recent Backend Logs:"
+docker-compose logs --tail=10 backend
 
 echo ""
 echo "======================================"
