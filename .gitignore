@@ -3,7 +3,7 @@
 /node_modules
 /build
 
-.env.local
+.env
 .env.production
 .env.production.example
 
