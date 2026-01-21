@@ -8,7 +8,7 @@ on:
 
 env:
     REGISTRY: ghcr.io
-    IMAGE_NAME: ${{ github.repository }}
+    IMAGE_NAME: minhtettharutycc/parcel-pilot-backend
 
 jobs:
     build-and-push:
@@ -28,26 +28,16 @@ jobs:
               uses: docker/login-action@v3
               with:
                   registry: ${{ env.REGISTRY }}
-                  username: ${{ github.actor }}
+                  username: minhtettharutycc
                   password: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Extract metadata
-              id: meta
-              uses: docker/metadata-action@v5
-              with:
-                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-                  tags: |
-                      type=ref,event=branch
-                      type=sha,prefix={{branch}}-
-                      type=raw,value=latest
 
             - name: Build and push Docker image
               uses: docker/build-push-action@v5
               with:
                   context: .
                   push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
+                  tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+                  labels: version=latest
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
