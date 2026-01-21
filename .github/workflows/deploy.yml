@@ -66,7 +66,7 @@ jobs:
                   script: |
                       cd ~/apps/parcel-pilot-backend
                       echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-                      docker pull ghcr.io/minhtetthar/parcel-pilot-backend:latest
+                      docker pull ghcr.io/minhtettharutycc/parcel-pilot-backend:latest
                       docker-compose down
                       docker-compose up -d
                       sleep 10
