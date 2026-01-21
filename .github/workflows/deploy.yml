@@ -55,6 +55,7 @@ jobs:
                   key: ${{ secrets.VPS_SSH_KEY }}
                   script: |
                       cd ~/apps/parcel-pilot-backend
+                      git pull origin main
                       echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u minhtettharutycc --password-stdin
                       docker pull ghcr.io/minhtettharutycc/parcel-pilot-backend:latest
                       docker-compose down
