@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     backend:
-        image: ghcr.io/minhtetthar/parcel-pilot-backend:latest
+        image: ghcr.io/minhtettharutycc/parcel-pilot-backend:latest
         container_name: parcel_pilot_backend
         ports:
             - '6000:6000'
