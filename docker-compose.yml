@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+  api:
+    build: .
+    container_name: parcel_pilot_api
+    command: node dist/main.js
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:3000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  worker:
+    build: .
+    container_name: parcel_pilot_worker
+    command: node dist/worker.js
+    env_file:
+      - .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: parcel_pilot_postgres
+    environment:
+      POSTGRES_DB: parcel_pilot
+      POSTGRES_USER: parcel_pilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-parcel_pilot_change_this_password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U parcel_pilot']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: parcel_redis
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

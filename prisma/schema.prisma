@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  MANAGER
+  STAFF
+  RESIDENT
+  RESIDENT_PENDING
+  RESIDENT_REJECTED
+}
+
+model User {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  password   String
+  name       String
+  phone      String?
+  approvedAt DateTime? //for resident approval
+  rejectedAt DateTime? //for resident rejection
+
+  refreshToken String?
+
+  role       UserRole @default(RESIDENT_PENDING)
+  unitNumber String?  @unique
+
+  imageUrl String?
+  imageKey String? // R2 storage key
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  receivedParcels Parcel[]       @relation("ReceivedParcels")
+  managedParcels  Parcel[]       @relation("ManagedParcels")
+  notifications   Notification[]
+
+  @@index([email])
+  @@index([role])
+  @@index([unitNumber])
+}
+
+enum ParcelStatus {
+  REGISTERED
+  READY_FOR_PICKUP // Resident notified
+  PICKED_UP
+  RETURNED
+}
+
+model Parcel {
+  id String @id @default(cuid())
+
+  orderId     String?
+  description String?
+  courier     String?
+
+  imageUrl  String? // Direct R2 URL
+  imageKey  String? // R2 storage key (parcels/{id}/image.jpg)
+  imageSize Int? // size in bytes
+
+  status ParcelStatus @default(REGISTERED)
+  notes  String? // staff notes
+
+  pickupCode String @unique @default(cuid()) // For QR code
+
+  recipientId String // Resident receiving it
+  recipient   User   @relation("ReceivedParcels", fields: [recipientId], references: [id])
+
+  receivedById String // staff who registered it
+  receivedBy   User   @relation("ManagedParcels", fields: [receivedById], references: [id])
+
+  // pickupLogs PickupLog?
+
+  registeredAt DateTime  @default(now())
+  pickedUpAt   DateTime?
+  returnedAt   DateTime?
+
+  @@index([recipientId])
+  @@index([status])
+  @@index([pickupCode])
+  @@index([receivedById])
+  @@index([registeredAt])
+  @@index([pickedUpAt])
+  @@index([returnedAt])
+  @@index([orderId])
+}
+
+enum NotificationType {
+  PARCEL_RECEIVED
+  PARCEL_READY
+  PARCEL_PICKED_UP
+  PARCEL_RETURNED
+  PICKUP_REMINDER
+  ACCOUNT_APPROVED // Resident approved
+  ACCOUNT_REJECTED // Resident rejected
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  type    NotificationType
+  title   String
+  message String
+
+  isRead Boolean @default(false)
+
+  actionUrl String?
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  // Indexes
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+}

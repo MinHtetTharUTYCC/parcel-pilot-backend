@@ -1,0 +1,36 @@
+# ---------- builder ----------
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# 1. Copy workspace configs from the ROOT context
+COPY pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml ./
+
+# 2. Copy the folders
+COPY shared /app/shared
+COPY backend /app/backend
+
+# 3. INSTALL NOW (while in /app where pnpm-lock.yaml is)
+RUN pnpm install --frozen-lockfile
+
+# 4. NOW switch to backend for Prisma and Build
+WORKDIR /app/backend
+RUN npx prisma generate
+RUN pnpm run build
+
+# ---------- production ----------
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN apk add --no-cache dumb-init
+RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Copy only what's needed for the final run
+# Note: In production, we usually need the built shared code too
+COPY --from=builder --chown=nodejs:nodejs /app/shared /app/shared
+COPY --from=builder --chown=nodejs:nodejs /app/backend/node_modules /app/backend/node_modules
+COPY --from=builder CMD ["node", "dist/main.js"]
