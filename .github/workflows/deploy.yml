@@ -62,7 +62,7 @@ jobs:
                       docker container prune -f
                       docker-compose up -d
                       sleep 10
-                      docker-compose exec -T backend npm run prisma:migrate:deploy || true
+                      docker-compose exec -T backend npx prisma migrate deploy --config=prisma.config.ts || true
                       echo "Deployment completed!"
 
             - name: Health Check

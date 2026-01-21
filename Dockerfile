@@ -31,6 +31,7 @@ COPY --from=source_build --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=source_build --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=source_build --chown=nodejs:nodejs /app/prisma ./prisma
 COPY --from=source_build --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=source_build --chown=nodejs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 USER nodejs
 
