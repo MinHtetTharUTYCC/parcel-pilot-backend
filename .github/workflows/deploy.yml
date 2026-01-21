@@ -58,7 +58,8 @@ jobs:
                       git pull origin main
                       echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u minhtettharutycc --password-stdin
                       docker pull ghcr.io/minhtettharutycc/parcel-pilot-backend:latest
-                      docker-compose down
+                      docker-compose down -v
+                      docker container prune -f
                       docker-compose up -d
                       sleep 10
                       docker-compose exec -T backend npm run prisma:migrate:deploy || true
