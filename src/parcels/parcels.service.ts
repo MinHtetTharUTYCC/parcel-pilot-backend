@@ -23,7 +23,7 @@ export class ParcelsService {
 		private databaseService: DatabaseService,
 		private eventEmitter: EventEmitter2,
 		private cloudflareR2Service: CloudflareR2Service,
-	) {}
+	) { }
 
 	async getParcels(user: RequestUser, dto: GetParcelsFilterDto) {
 		const { cursor, limit, q } = dto;
@@ -144,8 +144,6 @@ export class ParcelsService {
 					unitNumber: true,
 				},
 			},
-			imageKey: true,
-			imageUrl: true,
 		};
 
 		switch (role) {
@@ -215,7 +213,6 @@ export class ParcelsService {
 							unitNumber: true,
 						},
 					},
-					imageKey: true,
 					imageUrl: true,
 					pickupCode: true,
 					courier: true,
