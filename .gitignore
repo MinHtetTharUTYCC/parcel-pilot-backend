@@ -8,3 +8,7 @@
 .env.production.example
 
 /generated/prisma
+
+
+DEPLOYMENT_GUIDE.md
+DEPLOYMENT_READY.md

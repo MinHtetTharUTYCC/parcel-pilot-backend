@@ -1,19 +1,22 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  api:
-    build: .
-    container_name: parcel_pilot_api
-    command: node dist/main.js
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    container_name: parcel_pilot_backend
     ports:
-      - '3000:3000'
+      - '6000:6000'
+    environment:
+      - NODE_ENV=production
     env_file:
       - .env.production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test:
@@ -21,7 +24,7 @@ services:
           'CMD',
           'node',
           '-e',
-          "require('http').get('http://localhost:3000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))",
+          "require('http').get('http://localhost:6000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))",
         ]
       interval: 30s
       timeout: 10s
@@ -29,37 +32,44 @@ services:
       start_period: 40s
 
   worker:
-    build: .
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
     container_name: parcel_pilot_worker
     command: node dist/worker.js
+    environment:
+      - NODE_ENV=production
     env_file:
       - .env.production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: parcel_pilot_postgres
     environment:
-      POSTGRES_DB: parcel_pilot
-      POSTGRES_USER: parcel_pilot
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-parcel_pilot_change_this_password}
+      POSTGRES_USER: parcel_pilot_admin
+      POSTGRES_PASSWORD: parcel_pilot_password
+      POSTGRES_DB: parcel-pilot
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U parcel_pilot']
+      test: ['CMD-SHELL', 'pg_isready -U parcel_pilot_admin']
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: parcel_redis
+    container_name: parcel_pilot_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
@@ -68,4 +78,5 @@ services:
       retries: 5
 
 volumes:
-  pgdata:
+  postgres_data:
+  redis_data:
