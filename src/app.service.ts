@@ -6,7 +6,7 @@ export class AppService {
     return {
       status: "OK",
       timestamp: new Date().toISOString(),
-      service: "parcel-pilot-api",
+      service: "Parcel Pilot API",
     };
   }
 }

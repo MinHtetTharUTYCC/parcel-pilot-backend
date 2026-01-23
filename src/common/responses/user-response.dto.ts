@@ -102,8 +102,8 @@ export class StaffResponseDto {
 
 export class ResidentListMetaDto {
   @ApiProperty({
-    description: "Total number of residents",
-    example: 25,
+    description: "Total number of parcels",
+    example: 50,
     type: Number,
   })
   total: number;
@@ -116,12 +116,25 @@ export class ResidentListMetaDto {
   limit: number;
 
   @ApiProperty({
-    description: "Cursor for next page",
-    example: "next_cursor_string",
-    type: String,
-    nullable: true,
+    description: "Current page number",
+    example: 1,
+    type: Number,
   })
-  cursor?: string;
+  page?: number;
+
+  @ApiProperty({
+    description: "Total number of pages",
+    example: 5,
+    type: Number,
+  })
+  totalPages: number;
+
+  @ApiProperty({
+    description: "Indicator if there is a next page",
+    example: true,
+    type: Boolean,
+  })
+  hasNext: boolean;
 }
 
 export class ResidentListResponseDto {

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 
+// Base DTO for recipient information (limited view for residents)
 export class ParcelRecipientDto {
   @ApiProperty({
     description: "Recipient user ID",
@@ -38,6 +39,24 @@ export class ParcelRecipientDto {
   phone?: string;
 }
 
+// Staff/Manager info DTO
+export class ParcelStaffDto {
+  @ApiProperty({
+    description: "Staff name",
+    example: "Jane Admin",
+    type: String,
+  })
+  name: string;
+
+  @ApiProperty({
+    description: "Staff email",
+    example: "staff@example.com",
+    type: String,
+  })
+  email: string;
+}
+
+// Base parcel response (for residents - minimal information)
 export class ParcelResponseDto {
   @ApiProperty({
     description: "Parcel ID",
@@ -94,8 +113,8 @@ export class ParcelResponseDto {
 
   @ApiProperty({
     description: "Parcel status",
-    enum: ["PENDING", "PICKED_UP", "RETURNED"],
-    example: "PENDING",
+    enum: ["REGISTERED", "READY_FOR_PICKUP", "PICKED_UP", "RETURNED"],
+    example: "REGISTERED",
     type: String,
   })
   status: string;
@@ -108,11 +127,18 @@ export class ParcelResponseDto {
   courier: string;
 
   @ApiProperty({
+    description: "Pickup code for confirmation",
+    example: "pickup-code-xyz",
+    type: String,
+  })
+  pickupCode: string;
+
+  @ApiProperty({
     description: "Creation timestamp",
     example: "2026-01-15T10:30:00Z",
     type: String,
   })
-  createdAt: string;
+  registeredAt: string;
 
   @ApiProperty({
     description: "Pickup timestamp",
@@ -131,6 +157,19 @@ export class ParcelResponseDto {
   returnedAt?: string;
 }
 
+// Extended response for Staff/Manager (includes receivedBy information)
+export class ParcelStaffResponseDto extends ParcelResponseDto {
+  @ApiProperty({
+    description: "Staff member who registered the parcel",
+    type: ParcelStaffDto,
+    nullable: true,
+  })
+  receivedBy?: ParcelStaffDto;
+}
+
+// Staff and Manager see additional info, Residents see basic info
+export type ParcelResponseForRole = ParcelResponseDto | ParcelStaffResponseDto;
+
 export class ParcelListMetaDto {
   @ApiProperty({
     description: "Total number of parcels",
@@ -147,20 +186,49 @@ export class ParcelListMetaDto {
   limit: number;
 
   @ApiProperty({
-    description: "Cursor for next page",
-    example: "next_cursor_string",
-    type: String,
-    nullable: true,
+    description: "Current page number",
+    example: 1,
+    type: Number,
   })
-  cursor?: string;
+  page?: number;
+
+  @ApiProperty({
+    description: "Total number of pages",
+    example: 5,
+    type: Number,
+  })
+  totalPages: number;
+
+  @ApiProperty({
+    description: "Indicator if there is a next page",
+    example: true,
+    type: Boolean,
+  })
+  hasNext: boolean;
 }
 
+// Base list response (for residents)
 export class ParcelListResponseDto {
   @ApiProperty({
     description: "Array of parcels",
     type: [ParcelResponseDto],
   })
   data: ParcelResponseDto[];
+
+  @ApiProperty({
+    description: "Pagination metadata",
+    type: ParcelListMetaDto,
+  })
+  meta: ParcelListMetaDto;
+}
+
+// Extended list response for Staff/Manager
+export class ParcelStaffListResponseDto {
+  @ApiProperty({
+    description: "Array of parcels with staff information",
+    type: [ParcelStaffResponseDto],
+  })
+  data: ParcelStaffResponseDto[];
 
   @ApiProperty({
     description: "Pagination metadata",
