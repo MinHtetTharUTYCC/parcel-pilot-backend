@@ -239,13 +239,6 @@ export class ParcelStaffListResponseDto {
 
 export class DeleteParcelResponseDto {
   @ApiProperty({
-    description: "Deletion success indicator",
-    example: true,
-    type: Boolean,
-  })
-  success: boolean;
-
-  @ApiProperty({
     description: "Deletion confirmation message",
     example: "Parcel deleted successfully",
     type: String,
@@ -257,5 +250,37 @@ export class DeleteParcelResponseDto {
     example: "parcel-id-123",
     type: String,
   })
-  id: string;
+  parcelId: string;
+}
+
+export class PickupParcelResponseDto {
+  @ApiProperty({
+    description: "Pickup confirmation message",
+    example: "Parcel picked up successfully",
+    type: String,
+  })
+  message: string;
+
+  @ApiProperty({
+    description: "ID of picked up parcel",
+    example: "parcel-id-123",
+    type: String,
+  })
+  parcelId: string;
+}
+
+export class ParcelReturnResponseDto {
+  @ApiProperty({
+    description: "Parcel returned confirmation message",
+    example: "Parcel returned successfully",
+    type: String,
+  })
+  message: string;
+
+  @ApiProperty({
+    description: "ID of returned parcel",
+    example: "parcel-id-123",
+    type: String,
+  })
+  parcelId: string;
 }

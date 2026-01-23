@@ -31,13 +31,15 @@ import {
   ApiBody,
 } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ParcelListResponseDto, ParcelResponseDto, PickupParcelResponseDto, DeleteParcelResponseDto, ParcelReturnResponseDto } from "src/common/responses/parcel-response.dto";
+import { ForbiddenResponseDto, NotFoundResponseDto, ValidationErrorResponseDto } from "src/common/responses/error-response.dto";
 
 @ApiTags("Parcels")
 @ApiBearerAuth("access-token")
 @Controller("parcels")
 @UseInterceptors(SuccessResponseInterceptor)
 export class ParcelsController {
-  constructor(private readonly parcelsService: ParcelsService) {}
+  constructor(private readonly parcelsService: ParcelsService) { }
 
   @Get()
   @Auth("STAFF", "MANAGER")
@@ -53,36 +55,12 @@ export class ParcelsController {
   @ApiResponse({
     status: 200,
     description: "List of parcels retrieved successfully",
-    schema: {
-      example: {
-        data: [
-          {
-            id: "parcel-id-1",
-            orderId: "ORD-2026-001",
-            recipientId: "resident-id-1",
-            recipient: {
-              id: "resident-id-1",
-              name: "John Doe",
-              email: "john@example.com",
-              unitNumber: "A-101",
-            },
-            description: "Package contents",
-            status: "PENDING",
-            courier: "DHL",
-            createdAt: "2026-01-15T10:30:00Z",
-          },
-        ],
-        meta: {
-          total: 50,
-          limit: 10,
-          cursor: "next_cursor",
-        },
-      },
-    },
+    type: ParcelListResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
   getAllParcels(
     @ReqUser() user: authInterfaces.RequestUser,
@@ -98,37 +76,15 @@ export class ParcelsController {
     description:
       "Retrieve parcels for the logged-in resident. Only RESIDENT role can access this.",
   })
-  @ApiQuery({
-    type: GetParcelsFilterDto,
-    description: "Filter and pagination options for resident parcels",
-  })
   @ApiResponse({
     status: 200,
     description: "List of resident parcels retrieved successfully",
-    schema: {
-      example: {
-        data: [
-          {
-            id: "parcel-id-1",
-            orderId: "ORD-2026-001",
-            recipientId: "resident-id-1",
-            description: "Package contents",
-            status: "PENDING",
-            courier: "DHL",
-            createdAt: "2026-01-15T10:30:00Z",
-          },
-        ],
-        meta: {
-          total: 5,
-          limit: 10,
-          cursor: null,
-        },
-      },
-    },
+    type: ParcelListResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
   getMyParcels(
     @ReqUser() user: authInterfaces.RequestUser,
@@ -153,36 +109,17 @@ export class ParcelsController {
   @ApiResponse({
     status: 200,
     description: "Parcel details retrieved successfully",
-    schema: {
-      example: {
-        id: "parcel-id-1",
-        orderId: "ORD-2026-001",
-        recipientId: "resident-id-1",
-        recipient: {
-          id: "resident-id-1",
-          name: "John Doe",
-          email: "john@example.com",
-          unitNumber: "A-101",
-          phone: "+1234567890",
-        },
-        description: "Package contents",
-        note: "Handle with care",
-        imageUrl: "https://example.com/image.jpg",
-        status: "PENDING",
-        courier: "DHL",
-        createdAt: "2026-01-15T10:30:00Z",
-        pickedUpAt: null,
-        returnedAt: null,
-      },
-    },
+    type: ParcelResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Parcel not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - cannot view other residents parcels",
+    type: ForbiddenResponseDto,
   })
   getParcel(
     @ReqUser() user: authInterfaces.RequestUser,
@@ -206,29 +143,22 @@ export class ParcelsController {
   @ApiResponse({
     status: 201,
     description: "Parcel created successfully",
-    schema: {
-      example: {
-        id: "parcel-id-new",
-        orderId: "ORD-2026-002",
-        recipientId: "resident-id-1",
-        description: "New package",
-        status: "PENDING",
-        courier: "FedEx",
-        createdAt: "2026-01-15T11:45:00Z",
-      },
-    },
+    type: ParcelResponseDto
   })
   @ApiResponse({
     status: 400,
     description: "Validation error - invalid input",
+    type: ValidationErrorResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Recipient not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
   createParcel(
     @Body() dto: CreateParcelDto,
@@ -263,27 +193,24 @@ export class ParcelsController {
   @ApiResponse({
     status: 200,
     description: "Parcel marked as picked up successfully",
-    schema: {
-      example: {
-        id: "parcel-id-1",
-        status: "PICKED_UP",
-        pickedUpAt: "2026-01-15T12:00:00Z",
-      },
-    },
+    type: PickupParcelResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Parcel not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 400,
     description: "Parcel cannot be picked up - invalid status",
+    type: ValidationErrorResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
-  pickupParcel(@Param("id") id: string) {
+  pickupParcel(@Param("id") id: string): Promise<PickupParcelResponseDto> {
     return this.parcelsService.pickupParcel(id);
   }
 
@@ -303,27 +230,24 @@ export class ParcelsController {
   @ApiResponse({
     status: 200,
     description: "Parcel marked as returned successfully",
-    schema: {
-      example: {
-        id: "parcel-id-1",
-        status: "RETURNED",
-        returnedAt: "2026-01-15T12:30:00Z",
-      },
-    },
+    type: ParcelReturnResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Parcel not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 400,
     description: "Parcel cannot be returned - invalid status",
+    type: ValidationErrorResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
-  returnParcel(@Param("id") id: string) {
+  returnParcel(@Param("id") id: string): Promise<ParcelReturnResponseDto> {
     return this.parcelsService.returnParcel(id);
   }
 
@@ -347,30 +271,24 @@ export class ParcelsController {
   @ApiResponse({
     status: 200,
     description: "Parcel updated successfully",
-    schema: {
-      example: {
-        id: "parcel-id-1",
-        orderId: "ORD-2026-001-UPDATED",
-        description: "Updated description",
-        note: "Updated notes",
-        courier: "DHL",
-        updatedAt: "2026-01-15T13:00:00Z",
-      },
-    },
+    type: ParcelResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Parcel not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 400,
     description: "Validation error - invalid input",
+    type: ValidationErrorResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
-  updateParcel(@Param("id") id: string, @Body() dto: UpdateParcelDto) {
+  updateParcel(@Param("id") id: string, @Body() dto: UpdateParcelDto): Promise<ParcelResponseDto> {
     return this.parcelsService.updateParcel(dto, id);
   }
 
@@ -390,23 +308,19 @@ export class ParcelsController {
   @ApiResponse({
     status: 200,
     description: "Parcel deleted successfully",
-    schema: {
-      example: {
-        success: true,
-        message: "Parcel deleted successfully",
-        id: "parcel-id-1",
-      },
-    },
+    type: DeleteParcelResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Parcel not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
-  deleteParcel(@Param("id") id: string) {
+  deleteParcel(@Param("id") id: string): Promise<DeleteParcelResponseDto> {
     return this.parcelsService.deleteParcel(id);
   }
 }

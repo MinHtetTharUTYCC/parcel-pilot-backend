@@ -16,11 +16,14 @@ import {
   CloudflareR2Service,
   ImageUploadOptions,
 } from "src/cloudflare-r2/cloudflareR2.service";
-import { 
-  ParcelListResponseDto, 
-  ParcelResponseDto, 
+import {
+  ParcelListResponseDto,
+  ParcelResponseDto,
   ParcelStaffResponseDto,
-  ParcelStaffListResponseDto 
+  ParcelStaffListResponseDto,
+  PickupParcelResponseDto,
+  ParcelReturnResponseDto,
+  DeleteParcelResponseDto
 } from "src/common/responses/parcel-response.dto";
 
 @Injectable()
@@ -115,7 +118,7 @@ export class ParcelsService {
 
     // Map based on user role
     const isStaffOrManager = user.role === "STAFF" || user.role === "MANAGER";
-    const mappedParcels = isStaffOrManager 
+    const mappedParcels = isStaffOrManager
       ? parcels.map(p => this.mapToStaffParcelResponse(p))
       : parcels.map(p => this.mapToParcelResponse(p));
 
@@ -187,7 +190,7 @@ export class ParcelsService {
 
     // Map based on user role
     const isStaffOrManager = user.role === "STAFF" || user.role === "MANAGER";
-    return isStaffOrManager 
+    return isStaffOrManager
       ? this.mapToStaffParcelResponse(parcel)
       : this.mapToParcelResponse(parcel);
   }
@@ -259,21 +262,7 @@ export class ParcelsService {
           },
           pickupCode,
         },
-        select: {
-          id: true,
-          recipientId: true,
-          recipient: {
-            select: {
-              name: true,
-              email: true,
-              unitNumber: true,
-            },
-          },
-          imageUrl: true,
-          pickupCode: true,
-          courier: true,
-          registeredAt: true,
-        },
+        include: this.getIncludeForParcel(UserRole.STAFF),
       });
 
       const parcelRegisteredEvent: ParcelRegisteredEvent = {
@@ -290,7 +279,9 @@ export class ParcelsService {
 
       this.eventEmitter.emit(events.registered, parcelRegisteredEvent);
 
-      return parcel;
+      const mappedParcel = this.mapToStaffParcelResponse(parcel);
+
+      return mappedParcel;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === "P2025") {
@@ -302,14 +293,16 @@ export class ParcelsService {
     }
   }
 
-  async updateParcel(dto: UpdateParcelDto, parcelId: string) {
+  async updateParcel(dto: UpdateParcelDto, parcelId: string): Promise<ParcelStaffResponseDto> {
     try {
-      await this.databaseService.parcel.update({
+      const updateParcel = await this.databaseService.parcel.update({
         where: { id: parcelId },
         data: { ...dto },
+        include: this.getIncludeForParcel(UserRole.STAFF),
       });
 
-      return { parcelId };
+      const mappedParcel = this.mapToStaffParcelResponse(updateParcel);
+      return mappedParcel;
     } catch (error: unknown) {
       if (
         error instanceof PrismaClientKnownRequestError &&
@@ -321,7 +314,7 @@ export class ParcelsService {
     }
   }
 
-  async pickupParcel(parcelId: string) {
+  async pickupParcel(parcelId: string): Promise<PickupParcelResponseDto> {
     try {
       const parcel = await this.databaseService.parcel.update({
         where: { id: parcelId },
@@ -361,7 +354,7 @@ export class ParcelsService {
 
       this.eventEmitter.emit(events.pickedup, parcelPickedupEvent);
 
-      return { parcelId, messages: "Marked as pickedup successfully" };
+      return { parcelId, message: "Marked as pickedup successfully" };
     } catch (error: unknown) {
       if (
         error instanceof PrismaClientKnownRequestError &&
@@ -372,7 +365,8 @@ export class ParcelsService {
       throw error;
     }
   }
-  async returnParcel(parcelId: string) {
+
+  async returnParcel(parcelId: string): Promise<ParcelReturnResponseDto> {
     try {
       const parcel = await this.databaseService.parcel.update({
         where: { id: parcelId },
@@ -412,7 +406,7 @@ export class ParcelsService {
 
       this.eventEmitter.emit(events.returned, parcelReturnedEvent);
 
-      return { parcelId, messages: "Marked as returned successfully" };
+      return { parcelId, message: "Marked as returned successfully" };
     } catch (error: unknown) {
       if (
         error instanceof PrismaClientKnownRequestError &&
@@ -424,7 +418,8 @@ export class ParcelsService {
     }
   }
 
-  async readyForPickup(parcelId: string) {
+  //for jobs
+  async readyForPickup(parcelId: string): Promise<void> {
     try {
       await this.databaseService.parcel.update({
         where: { id: parcelId },
@@ -446,10 +441,10 @@ export class ParcelsService {
     }
   }
 
-  async deleteParcel(parcelId: string) {
+  async deleteParcel(parcelId: string): Promise<DeleteParcelResponseDto> {
     try {
       await this.databaseService.parcel.delete({ where: { id: parcelId } });
-      return { parcelId };
+      return { parcelId, message: "Parcel deleted successfully" };
     } catch (error) {
       if (
         error instanceof PrismaClientKnownRequestError &&
@@ -460,6 +455,8 @@ export class ParcelsService {
     }
   }
 
+
+  //for jobs
   async getPendingParcels() {
     const pendingParcels = await this.databaseService.parcel.findMany({
       where: {
