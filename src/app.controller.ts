@@ -2,6 +2,12 @@ import { Controller, Get } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 
+export class HealthCheckResponseDto {
+  status: string;
+  timestamp: string;
+  service: string;
+}
+
 @ApiTags("health")
 @Controller("health")
 export class AppController {
@@ -15,6 +21,7 @@ export class AppController {
   @ApiResponse({
     status: 200,
     description: "Server is healthy and running",
+    type: HealthCheckResponseDto,
     schema: {
       example: {
         "status": "ok",

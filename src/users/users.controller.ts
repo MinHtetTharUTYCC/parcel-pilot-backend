@@ -31,16 +31,44 @@ import { RequestUser } from "src/auth/interfaces/auth.interface";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { UpdateUnitDto } from "./dto/update-unit.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
+import {
+  ResidentResponseDto,
+  StaffResponseDto,
+  ResidentListResponseDto,
+  StaffListResponseDto,
+} from "src/common/responses/user-response.dto";
+import { UserResponseDto } from "src/common/responses/auth-response.dto";
+import {
+  UnauthorizedResponseDto,
+  ValidationErrorResponseDto,
+  NotFoundResponseDto,
+  ForbiddenResponseDto,
+} from "src/common/responses/error-response.dto";
 
 @ApiTags("Users")
 @ApiBearerAuth("access-token")
 @Controller("users")
 @UseInterceptors(SuccessResponseInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get("me")
   @Auth("MANAGER", "STAFF", "RESIDENT")
+  @ApiOperation({
+    summary: "Get Current User Profile",
+    description:
+      "Retrieve the profile information of the currently authenticated user.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "User profile retrieved successfully",
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: "Unauthorized - no valid token provided",
+    type: UnauthorizedResponseDto,
+  })
   getMe(@ReqUser() user: RequestUser) {
     return this.usersService.getMe(user.sub);
   }
@@ -48,6 +76,26 @@ export class UsersController {
   @Patch("update")
   @Auth("MANAGER", "STAFF", "RESIDENT")
   @UseInterceptors(FileInterceptor("image"))
+  @ApiOperation({
+    summary: "Update User Profile",
+    description:
+      "Update the profile information of the currently authenticated user. Can optionally upload a profile image.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Profile updated successfully",
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Validation error - invalid input or file type",
+    type: ValidationErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: "Unauthorized - no valid token provided",
+    type: UnauthorizedResponseDto,
+  })
   updateProfile(
     @ReqUser() user: RequestUser,
     @UploadedFile(
@@ -67,6 +115,26 @@ export class UsersController {
 
   @Patch("update/unit")
   @Auth("MANAGER", "STAFF")
+  @ApiOperation({
+    summary: "Update Resident Unit Number",
+    description:
+      "Update the unit number for a specific resident. Only STAFF and MANAGER roles can perform this action.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Unit number updated successfully",
+    type: ResidentResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Resident not found",
+    type: NotFoundResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
+  })
   updateUnit(@Body() dto: UpdateUnitDto) {
     return this.usersService.updateUnit(dto);
   }
@@ -87,23 +155,17 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident approved successfully",
-    schema: {
-      example: {
-        id: "user-id-123",
-        email: "resident@example.com",
-        name: "John Doe",
-        status: "APPROVED",
-        role: "RESIDENT",
-      },
-    },
+    type: ResidentResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Resident not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
   approveResident(@Param("id") id: string) {
     return this.usersService.approveResident(id);
@@ -125,24 +187,17 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident rejected successfully",
-    schema: {
-      example: {
-        id: "user-id-123",
-        email: "resident@example.com",
-        name: "John Doe",
-        status: "REJECTED",
-        role: "RESIDENT",
-        rejectedAt: "2026-01-15T10:30:00Z",
-      },
-    },
+    type: ResidentResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: "Resident not found",
+    type: NotFoundResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
   rejectResident(@Param("id") id: string) {
     return this.usersService.rejectResident(id);
@@ -162,37 +217,12 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "List of residents retrieved successfully",
-    schema: {
-      example: {
-        data: [
-          {
-            id: "user-id-1",
-            email: "resident1@example.com",
-            name: "John Doe",
-            unitNumber: "A-101",
-            status: "APPROVED",
-            role: "RESIDENT",
-          },
-          {
-            id: "user-id-2",
-            email: "resident2@example.com",
-            name: "Jane Smith",
-            unitNumber: "A-102",
-            status: "PENDING",
-            role: "RESIDENT",
-          },
-        ],
-        meta: {
-          total: 25,
-          limit: 10,
-          cursor: "next_cursor_string",
-        },
-      },
-    },
+    type: ResidentListResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - insufficient permissions",
+    type: ForbiddenResponseDto,
   })
   getResidents(@Query() dto: ResidentFilterDto) {
     return this.usersService.getResidents(dto);
@@ -212,35 +242,12 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "List of staff members retrieved successfully",
-    schema: {
-      example: {
-        data: [
-          {
-            id: "staff-id-1",
-            email: "staff1@example.com",
-            name: "Admin User",
-            role: "STAFF",
-            status: "APPROVED",
-          },
-          {
-            id: "staff-id-2",
-            email: "staff2@example.com",
-            name: "Manager User",
-            role: "MANAGER",
-            status: "APPROVED",
-          },
-        ],
-        meta: {
-          total: 5,
-          limit: 10,
-          cursor: "next_cursor_string",
-        },
-      },
-    },
+    type: StaffListResponseDto,
   })
   @ApiResponse({
     status: 403,
     description: "Forbidden - only MANAGER role can access",
+    type: ForbiddenResponseDto,
   })
   getStaffs(@Query() dto: PaginationDto) {
     return this.usersService.getStaffs(dto);
@@ -248,6 +255,26 @@ export class UsersController {
 
   @Post("staffs")
   @Auth("MANAGER")
+  @ApiOperation({
+    summary: "Create New Staff Member",
+    description:
+      "Create a new staff or manager user. Only MANAGER role can perform this action.",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "Staff member created successfully",
+    type: StaffResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Validation error - invalid input or email already exists",
+    type: ValidationErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - only MANAGER role can create staff",
+    type: ForbiddenResponseDto,
+  })
   createStaff(@Body() dto: CreateStaffDto) {
     return this.usersService.createStaff(dto);
   }

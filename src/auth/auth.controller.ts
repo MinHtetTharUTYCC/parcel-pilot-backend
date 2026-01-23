@@ -30,6 +30,7 @@ import {
 import {
   UnauthorizedResponseDto,
   ValidationErrorResponseDto,
+  ForbiddenResponseDto,
 } from "src/common/responses/error-response.dto";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -37,7 +38,7 @@ const isProd = process.env.NODE_ENV === "production";
 @ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post("/login")
   @ApiOperation({
@@ -128,6 +129,7 @@ export class AuthController {
   @ApiResponse({
     status: 403,
     description: "Failed to refresh session - refresh token missing or invalid",
+    type: ForbiddenResponseDto,
   })
   async refresh(
     @Req() req: Request,
