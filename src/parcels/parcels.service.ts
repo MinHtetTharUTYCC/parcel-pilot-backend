@@ -16,6 +16,12 @@ import {
   CloudflareR2Service,
   ImageUploadOptions,
 } from "src/cloudflare-r2/cloudflareR2.service";
+import { 
+  ParcelListResponseDto, 
+  ParcelResponseDto, 
+  ParcelStaffResponseDto,
+  ParcelStaffListResponseDto 
+} from "src/common/responses/parcel-response.dto";
 
 @Injectable()
 export class ParcelsService {
@@ -23,16 +29,52 @@ export class ParcelsService {
     private databaseService: DatabaseService,
     private eventEmitter: EventEmitter2,
     private cloudflareR2Service: CloudflareR2Service,
-  ) {}
+  ) { }
 
-  async getParcels(user: RequestUser, dto: GetParcelsFilterDto) {
-    const { cursor, limit, q } = dto;
+  /**
+   * Map Prisma parcel data to ParcelResponseDto (for Residents)
+   */
+  private mapToParcelResponse(parcel: any): ParcelResponseDto {
+    return {
+      id: parcel.id,
+      orderId: parcel.orderId,
+      recipientId: parcel.recipientId,
+      recipient: parcel.recipient ? {
+        id: parcel.recipient.id,
+        name: parcel.recipient.name,
+        email: parcel.recipient.email,
+        unitNumber: parcel.recipient.unitNumber,
+        phone: parcel.recipient.phone,
+      } : undefined,
+      description: parcel.description,
+      note: parcel.notes,
+      imageUrl: parcel.imageUrl,
+      status: parcel.status,
+      courier: parcel.courier,
+      pickupCode: parcel.pickupCode,
+      registeredAt: parcel.registeredAt?.toISOString(),
+      pickedUpAt: parcel.pickedUpAt?.toISOString(),
+      returnedAt: parcel.returnedAt?.toISOString(),
+    };
+  }
+
+  /**
+   * Map Prisma parcel data to ParcelStaffResponseDto (for Staff/Manager)
+   */
+  private mapToStaffParcelResponse(parcel: any): ParcelStaffResponseDto {
+    const baseResponse = this.mapToParcelResponse(parcel);
+    return {
+      ...baseResponse,
+      receivedBy: parcel.receivedBy ? {
+        name: parcel.receivedBy.name,
+        email: parcel.receivedBy.email,
+      } : undefined,
+    };
+  }
+
+  async getParcels(user: RequestUser, dto: GetParcelsFilterDto): Promise<ParcelListResponseDto | ParcelStaffListResponseDto> {
+    const { page, limit, q } = dto;
     const whereCondition: Prisma.ParcelWhereInput = {};
-
-    // registered date cursor
-    if (cursor) {
-      whereCondition.registeredAt = { lt: new Date(cursor) };
-    }
 
     // search
     if (q) {
@@ -55,37 +97,41 @@ export class ParcelsService {
       ];
     }
 
-    const parcels = await this.databaseService.parcel.findMany({
-      where: whereCondition,
-      take: limit + 1,
-      orderBy: { registeredAt: "desc" },
-      include: this.getIncludeForParcel(user.role as UserRole),
-    });
+    const [totalParcels, parcels] = await Promise.all([
+      this.databaseService.parcel.count({
+        where: whereCondition,
+      }),
+      this.databaseService.parcel.findMany({
+        where: whereCondition,
+        take: limit,
+        skip: (page - 1) * limit,
+        orderBy: { registeredAt: "desc" },
+        include: this.getIncludeForParcel(user.role as UserRole),
+      }),
+    ]);
 
-    const hasNext = parcels.length > limit;
-    const items = hasNext ? parcels.slice(0, -1) : parcels;
-    const nextCursor = hasNext
-      ? items[items.length - 1].registeredAt.toISOString()
-      : null;
+    const totalPages = Math.ceil(totalParcels / limit);
+    const hasNext = parcels.length >= limit;
+
+    // Map based on user role
+    const isStaffOrManager = user.role === "STAFF" || user.role === "MANAGER";
+    const mappedParcels = isStaffOrManager 
+      ? parcels.map(p => this.mapToStaffParcelResponse(p))
+      : parcels.map(p => this.mapToParcelResponse(p));
 
     return {
-      data: items,
-      meta: { limit, hasNext, nextCursor },
+      data: mappedParcels,
+      meta: { limit, page, hasNext, totalPages, total: totalParcels },
     };
   }
 
-  async getMyParcels(userId: string, dto: GetParcelsFilterDto) {
-    const { cursor, limit, q } = dto;
+  async getMyParcels(userId: string, dto: GetParcelsFilterDto): Promise<ParcelListResponseDto> {
+    const { page, limit, q } = dto;
 
     // ownership
     const whereCondition: Prisma.ParcelWhereInput = {
       recipientId: userId,
     };
-
-    // registered date cursor
-    if (cursor) {
-      whereCondition.registeredAt = { lt: new Date(cursor) };
-    }
 
     // search
     if (q) {
@@ -97,28 +143,34 @@ export class ParcelsService {
       ];
     }
 
-    const parcels = await this.databaseService.parcel.findMany({
-      where: whereCondition,
-      take: limit + 1,
-      orderBy: {
-        registeredAt: "desc",
-      },
-      include: this.getIncludeForParcel(UserRole.RESIDENT),
-    });
+    const [totalParcels, parcels] = await Promise.all([
+      this.databaseService.parcel.count({
+        where: whereCondition,
+      }),
+      this.databaseService.parcel.findMany({
+        where: whereCondition,
+        take: limit,
+        skip: (page - 1) * limit,
+        orderBy: {
+          registeredAt: "desc",
+        },
+        include: this.getIncludeForParcel(UserRole.RESIDENT),
+      }),
+    ]);
 
-    const hasNext = parcels.length > limit;
-    const items = hasNext ? parcels.slice(0, -1) : parcels;
-    const nextCursor = hasNext
-      ? items[items.length - 1].registeredAt.toISOString()
-      : null;
+    const totalPages = Math.ceil(totalParcels / limit);
+    const hasNext = parcels.length >= limit;
+
+    // Map for residents (no receivedBy info)
+    const mappedParcels = parcels.map(p => this.mapToParcelResponse(p));
 
     return {
-      data: items,
-      meta: { limit, hasNext, nextCursor },
+      data: mappedParcels,
+      meta: { page, limit, totalPages, total: totalParcels, hasNext },
     };
   }
 
-  async getParcel(user: RequestUser, parcelId: string) {
+  async getParcel(user: RequestUser, parcelId: string): Promise<ParcelResponseDto | ParcelStaffResponseDto> {
     const whereClause =
       user.role === "RESIDENT"
         ? { id: parcelId, recipientId: user.sub }
@@ -133,7 +185,11 @@ export class ParcelsService {
       throw new NotFoundException("Parcel not found or access denied");
     }
 
-    return parcel;
+    // Map based on user role
+    const isStaffOrManager = user.role === "STAFF" || user.role === "MANAGER";
+    return isStaffOrManager 
+      ? this.mapToStaffParcelResponse(parcel)
+      : this.mapToParcelResponse(parcel);
   }
 
   private getIncludeForParcel(role: UserRole): Prisma.ParcelInclude {

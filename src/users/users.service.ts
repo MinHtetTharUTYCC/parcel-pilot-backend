@@ -4,25 +4,22 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-} from "@nestjs/common";
-import { Prisma, UserRole } from "@prisma/client";
-import { LoginDto } from "src/auth/dto/login.dto";
-import { SignupDto } from "src/auth/dto/signup.dto";
-import { DatabaseService } from "src/database/database.service";
-import * as bcrypt from "bcrypt";
-import { ResidentFilterDto } from "./dto/resident-filter.dto";
-import { PaginationDto } from "src/common/dto/pagination.dto";
-import { EventEmitter2 } from "@nestjs/event-emitter";
-import { ResidentApprovedEvent } from "src/notifications/events/resident-approved.event";
-import { events } from "src/common/consts/event-names";
-import { ResidentRejectedEvent } from "src/notifications/events/resident-rejected.event";
-import { CreateStaffDto } from "./dto/create-staff.dto";
-import { UpdateProfileDto } from "./dto/update-profile.dto";
-import {
-  CloudflareR2Service,
-  ImageUploadOptions,
-} from "src/cloudflare-r2/cloudflareR2.service";
-import { UpdateUnitDto } from "./dto/update-unit.dto";
+} from '@nestjs/common';
+import { Prisma, UserRole } from '@prisma/client';
+import { LoginDto } from 'src/auth/dto/login.dto';
+import { SignupDto } from 'src/auth/dto/signup.dto';
+import { DatabaseService } from 'src/database/database.service';
+import * as bcrypt from 'bcrypt';
+import { ResidentFilterDto } from './dto/resident-filter.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ResidentApprovedEvent } from 'src/notifications/events/resident-approved.event';
+import { events } from 'src/common/consts/event-names';
+import { ResidentRejectedEvent } from 'src/notifications/events/resident-rejected.event';
+import { CreateStaffDto } from './dto/create-staff.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { CloudflareR2Service, ImageUploadOptions } from 'src/cloudflare-r2/cloudflareR2.service';
+import { UpdateUnitDto } from './dto/update-unit.dto';
 
 @Injectable()
 export class UsersService {
@@ -30,7 +27,7 @@ export class UsersService {
     private readonly databaseService: DatabaseService,
     private readonly eventEmitter: EventEmitter2,
     private readonly cloudflareR2Service: CloudflareR2Service,
-  ) {}
+  ) { }
 
   async userExistsByMail(email: string): Promise<boolean> {
     const count = await this.databaseService.user.count({
@@ -53,14 +50,11 @@ export class UsersService {
         },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         // prisma unique constriant
-        throw new BadRequestException("Email already exists");
+        throw new BadRequestException('Email already exists');
       }
-      throw new BadRequestException("Failed to create user");
+      throw new BadRequestException('Failed to create user');
     }
   }
 
@@ -72,10 +66,10 @@ export class UsersService {
     });
 
     // user not found is unsafe(rabbit suggests)
-    if (!user) throw new BadRequestException("Invalid credentials");
+    if (!user) throw new BadRequestException('Invalid credentials');
 
     const isPwdValid = await bcrypt.compare(dto.password, user.password);
-    if (!isPwdValid) throw new BadRequestException("Invalid credentials");
+    if (!isPwdValid) throw new BadRequestException('Invalid credentials');
 
     this.checkAccountStatus(user.role);
 
@@ -99,7 +93,7 @@ export class UsersService {
         role: true,
       },
     });
-    if (!user) throw new NotFoundException("User not found");
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
   // for saving new refresh token
@@ -145,7 +139,7 @@ export class UsersService {
       },
     });
 
-    if (!user) throw new NotFoundException("User not found");
+    if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
@@ -154,16 +148,16 @@ export class UsersService {
       where: { id: userId },
       select: { email: true },
     });
-    if (!user) throw new NotFoundException("User not found");
+    if (!user) throw new NotFoundException('User not found');
 
     return user.email;
   }
 
   private checkAccountStatus(role: UserRole) {
     switch (role) {
-      case "RESIDENT_PENDING":
+      case 'RESIDENT_PENDING':
         throw new ForbiddenException(
-          "Account pending approval. You will be notified once approved",
+          'Account pending approval. You will be notified once approved',
         );
     }
 
@@ -191,7 +185,7 @@ export class UsersService {
       const resident = await this.databaseService.user.update({
         where: { id: residentId },
         data: {
-          role: "RESIDENT",
+          role: 'RESIDENT',
           rejectedAt: null,
           approvedAt: new Date(),
         },
@@ -217,11 +211,8 @@ export class UsersService {
 
       return { residentId };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2025"
-      ) {
-        throw new NotFoundException("User record not found");
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException('User record not found');
       }
       throw error;
     }
@@ -235,25 +226,23 @@ export class UsersService {
       });
 
       if (!user) {
-        throw new NotFoundException("User record not found");
+        throw new NotFoundException('User record not found');
       }
 
       switch (user.role) {
-        case "RESIDENT":
-          throw new ConflictException("Resident already approved");
-        case "RESIDENT_REJECTED":
-          throw new ConflictException("Resident already rejected");
-        case "STAFF":
-        case "MANAGER":
-          throw new BadRequestException(
-            "Cannot reject staff or manager accounts",
-          );
+        case 'RESIDENT':
+          throw new ConflictException('Resident already approved');
+        case 'RESIDENT_REJECTED':
+          throw new ConflictException('Resident already rejected');
+        case 'STAFF':
+        case 'MANAGER':
+          throw new BadRequestException('Cannot reject staff or manager accounts');
       }
 
       const resident = await this.databaseService.user.update({
         where: { id: residentId },
         data: {
-          role: "RESIDENT_REJECTED",
+          role: 'RESIDENT_REJECTED',
           approvedAt: null,
           rejectedAt: new Date(),
         },
@@ -279,80 +268,83 @@ export class UsersService {
 
       return { residentId };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2025"
-      ) {
-        throw new NotFoundException("User record not found");
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException('User record not found');
       }
       throw error;
     }
   }
 
   async getResidents(dto: ResidentFilterDto) {
-    const { cursor, limit, pending } = dto;
+    const { page, limit, pending } = dto;
 
-    const residents = await this.databaseService.user.findMany({
-      where: {
-        role: pending ? "RESIDENT_PENDING" : "RESIDENT",
-      },
-      take: limit + 1,
-      skip: cursor ? 1 : 0,
-      cursor: cursor ? { id: cursor } : undefined,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        imageUrl: true,
-        unitNumber: true,
-        _count: {
-          select: {
-            receivedParcels: true,
+    const whereCondition: Prisma.UserWhereInput = {
+      role: pending ? 'RESIDENT_PENDING' : 'RESIDENT',
+    };
+
+    const [totalResidents, residents] = await Promise.all([
+      this.databaseService.user.count({
+        where: whereCondition
+      }),
+      this.databaseService.user.findMany({
+        where: whereCondition,
+        take: limit,
+        skip: (page - 1) * limit,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          phone: true,
+          imageUrl: true,
+          unitNumber: true,
+          _count: {
+            select: {
+              receivedParcels: true,
+            },
           },
         },
-      },
-    });
+      }),
+    ]);
 
+    const totalPages = Math.ceil(totalResidents / limit);
     const hasNext = residents.length > limit;
-    const items = hasNext ? residents.slice(0, -1) : residents;
-    const nextCursor = hasNext ? items[items.length - 1].id : null;
 
     return {
-      data: items,
-      meta: { limit, hasNext, nextCursor },
+      data: residents,
+      meta: { page, limit, totalPages, total: totalResidents, hasNext, },
     };
   }
 
   async getStaffs(dto: PaginationDto) {
-    const { cursor, limit } = dto;
+    const { page, limit } = dto;
 
-    const staffs = await this.databaseService.user.findMany({
-      where: { role: "STAFF" },
-      take: limit + 1,
-      skip: cursor ? 1 : 0,
-      cursor: cursor ? { id: cursor } : undefined,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        imageUrl: true,
-        unitNumber: true,
-        _count: {
-          select: {
-            managedParcels: true,
+    const [totalStaffs, staffs] = await Promise.all([
+      this.databaseService.user.count({ where: { role: 'STAFF' } }),
+      this.databaseService.user.findMany({
+        where: { role: 'STAFF' },
+        take: limit,
+        skip: (page - 1) * limit,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          phone: true,
+          imageUrl: true,
+          _count: {
+            select: {
+              managedParcels: true,
+            },
           },
         },
-      },
-    });
-    const hasNext = staffs.length > limit;
-    const items = hasNext ? staffs.slice(0, -1) : staffs;
-    const nextCursor = hasNext ? items[items.length - 1].id : null;
+      }),
+    ]);
+
+    const hasNext = staffs.length >= limit;
+    const totalPages = Math.ceil(totalStaffs / limit);
 
     return {
-      data: items,
-      meta: { limit, hasNext, nextCursor },
+      data: staffs,
+      meta: { page, limit, totalPages, total: totalStaffs, hasNext },
     };
   }
 
@@ -365,7 +357,7 @@ export class UsersService {
           name: dto.name,
           email: dto.email,
           password: pwdHashed,
-          role: "STAFF",
+          role: 'STAFF',
         },
         select: {
           id: true,
@@ -378,23 +370,16 @@ export class UsersService {
 
       return { staff };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        throw new ConflictException("Email already exists");
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('Email already exists');
       }
       throw error;
     }
   }
 
-  async updateProfile(
-    userId: string,
-    file: Express.Multer.File = null,
-    dto: UpdateProfileDto,
-  ) {
+  async updateProfile(userId: string, file: Express.Multer.File = null, dto: UpdateProfileDto) {
     const options: ImageUploadOptions = {
-      folder: "avatars",
+      folder: 'avatars',
       maxSize: 10 * 1024 * 1024,
     };
 
@@ -427,7 +412,7 @@ export class UsersService {
 
   async updateUnit(dto: UpdateUnitDto) {
     const updateUser = await this.databaseService.user.update({
-      where: { id: dto.residentId, role: "RESIDENT" },
+      where: { id: dto.residentId, role: 'RESIDENT' },
       data: {
         unitNumber: dto.unitNumber,
       },

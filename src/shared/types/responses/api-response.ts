@@ -25,7 +25,6 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
     total: number;
     totalPages: number;
     hasNext: boolean;
-    hasPrev: boolean;
   };
 }
 
@@ -37,7 +36,6 @@ export function paginatedResponse<T>(
     total: number;
     totalPages: number;
     hasNext: boolean;
-    hasPrev: boolean;
   },
   message = "Success",
 ): PaginatedResponse<T> {

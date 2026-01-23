@@ -5,7 +5,7 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 @ApiTags("health")
 @Controller("health")
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService) { }
 
   @Get()
   @ApiOperation({
@@ -16,10 +16,14 @@ export class AppController {
     status: 200,
     description: "Server is healthy and running",
     schema: {
-      example: "Hello Parcels!",
+      example: {
+        "status": "ok",
+        "timestamp": "2024-10-01T12:34:56.789Z",
+        "service": "Parcel Pilot API",
+      },
     },
   })
-  getHello() {
+  checkHealth() {
     return this.appService.checkHealth();
   }
 }
