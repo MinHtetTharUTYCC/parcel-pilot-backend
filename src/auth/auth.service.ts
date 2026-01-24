@@ -93,7 +93,7 @@ export class AuthService {
 
     this.logger.log(`User registered: ${newUser.id}`);
 
-    return "Created account successfully. Wait for approval.";
+    return { success: true, message: "Created account successfully. Wait for approval" };
   }
 
   async refreshTokens(oldRefreshToken: string) {
