@@ -68,58 +68,20 @@ export class LoginResponseDto {
   })
   user: UserResponseDto;
 }
-
 export class SignupResponseDto {
-  @ApiProperty({
-    description: "New user ID",
-    example: "user-id-new",
-    type: String,
+   @ApiProperty({
+    description: "Signup success indicator",
+    example: true,
+    type: Boolean,
   })
-  id: string;
+  success: boolean;
 
   @ApiProperty({
-    description: "User email",
-    example: "newuser@example.com",
+    description: "Signup success message",
+    example: "Signed up successfully. Wait for approval",
     type: String,
   })
-  email: string;
-
-  @ApiProperty({
-    description: "User name",
-    example: "Jane Smith",
-    type: String,
-  })
-  name: string;
-
-  @ApiProperty({
-    description: "Unit number",
-    example: "B-205",
-    type: String,
-  })
-  unitNumber: string;
-
-  @ApiProperty({
-    description: "User role",
-    enum: ["RESIDENT", "STAFF", "MANAGER"],
-    example: "RESIDENT",
-    type: String,
-  })
-  role: string;
-
-  @ApiProperty({
-    description: "Initial status (usually PENDING for new registrations)",
-    enum: ["PENDING", "APPROVED", "REJECTED"],
-    example: "PENDING",
-    type: String,
-  })
-  status: string;
-
-  @ApiProperty({
-    description: "Account creation timestamp",
-    example: "2026-01-15T10:30:00Z",
-    type: String,
-  })
-  createdAt: string;
+  message: string;
 }
 
 export class LogoutResponseDto {
