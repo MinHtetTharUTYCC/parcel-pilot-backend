@@ -32,6 +32,7 @@ import {
   ValidationErrorResponseDto,
   ForbiddenResponseDto,
 } from "src/common/responses/error-response.dto";
+import { Auth } from "src/auth/decorators/auth.decorator";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -162,7 +163,8 @@ export class AuthController {
       user: refreshedUser,
     };
   }
-
+  
+  @Auth('MANAGER','STAFF','RESIDENT')
   @Post("/logout")
   @ApiBearerAuth("access-token")
   @ApiOperation({
