@@ -32,6 +32,8 @@ services:
     postgres:
         image: postgres:15-alpine
         container_name: parcel_pilot_postgres
+        ports:
+            - "127.0.0.1:5432:5432"
         environment:
             POSTGRES_USER: parcel_pilot_admin
             POSTGRES_PASSWORD: parcel_pilot_password
