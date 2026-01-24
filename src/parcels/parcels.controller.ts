@@ -29,6 +29,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
 } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ParcelListResponseDto, ParcelResponseDto, PickupParcelResponseDto, DeleteParcelResponseDto, ParcelReturnResponseDto } from "src/common/responses/parcel-response.dto";
@@ -129,6 +130,7 @@ export class ParcelsController {
   }
 
   @Post()
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor("image"))
   @Auth("STAFF", "MANAGER")
   @ApiOperation({
