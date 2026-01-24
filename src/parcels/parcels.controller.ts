@@ -17,7 +17,7 @@ import { ParcelsService } from "./parcels.service";
 import { ReqUser } from "src/auth/decorators/req-user.decorator";
 import * as authInterfaces from "src/auth/interfaces/auth.interface";
 import { Auth } from "src/auth/decorators/auth.decorator";
-import { CreateParcelDto } from "./dto/create-parcel.dto";
+import { CreateParcelDto,ParcelImageDto } from "./dto/create-parcel.dto";
 import { SuccessResponseInterceptor } from "src/common/interceptors/success-response.interceptor";
 import { UpdateParcelDto } from "./dto/update-parcel.dto";
 import { GetParcelsFilterDto } from "./dto/get-parcels.filter.dto";
@@ -29,6 +29,8 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
+  IntersectionType
 } from "@nestjs/swagger";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ParcelListResponseDto, ParcelResponseDto, PickupParcelResponseDto, DeleteParcelResponseDto, ParcelReturnResponseDto } from "src/common/responses/parcel-response.dto";
@@ -129,6 +131,7 @@ export class ParcelsController {
   }
 
   @Post()
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor("image"))
   @Auth("STAFF", "MANAGER")
   @ApiOperation({
@@ -137,7 +140,7 @@ export class ParcelsController {
       "Create a new parcel entry in the system. Only STAFF and MANAGER roles can create parcels.",
   })
   @ApiBody({
-    type: CreateParcelDto,
+    type: IntersectionType(CreateParcelDto, ParcelImageDto),
     description: "Parcel creation details",
   })
   @ApiResponse({

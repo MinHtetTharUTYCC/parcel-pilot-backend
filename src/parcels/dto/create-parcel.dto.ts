@@ -36,35 +36,7 @@ export class CreateParcelDto {
   })
   @IsOptional()
   @IsString()
-  note?: string;
-
-  @ApiPropertyOptional({
-    description: "URL of the parcel image",
-    type: String,
-    example: "https://example.com/parcel-image.jpg",
-  })
-  @IsOptional()
-  @IsString()
-  imageUrl?: string;
-
-  @ApiPropertyOptional({
-    description: "Storage key for the parcel image in cloud storage",
-    type: String,
-    example: "parcels/image-key-123",
-  })
-  @IsOptional()
-  @IsString()
-  imageKey?: string;
-
-  @ApiPropertyOptional({
-    description: "Size of the parcel image in bytes",
-    type: Number,
-    example: 102400,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  imageSize?: number;
+  notes?: string;
 
   @ApiPropertyOptional({
     description: "Name of the courier service",
@@ -74,4 +46,9 @@ export class CreateParcelDto {
   @IsString()
   @IsOptional()
   courier?: string;
+}
+
+export class ParcelImageDto {
+  @ApiProperty({ type: 'string', format: 'binary' })
+  image: any; // The key 'image' must match FileInterceptor("image")
 }
