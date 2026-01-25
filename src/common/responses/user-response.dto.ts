@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
+import { createApiResponseDto, createPaginatedResponseDto } from "../../shared/types/responses/api-response.dto";
+import { UserResponseDto } from "./auth-response.dto";
 
 export class ResidentResponseDto {
   @ApiProperty({
@@ -199,7 +201,43 @@ export class UpdateProfileResponseDto {
 
 export class ResidentListMetaDto {
   @ApiProperty({
-    description: "Total number of parcels",
+    description: "Total number of residents",
+    example: 50,
+    type: Number,
+  })
+  total: number;
+
+  @ApiProperty({
+    description: "Current page limit",
+    example: 10,
+    type: Number,
+  })
+  limit: number;
+
+  @ApiProperty({
+    description: "Current page number",
+    example: 1,
+    type: Number,
+  })
+  page?: number;
+
+  @ApiProperty({
+    description: "Total number of pages",
+    example: 5,
+    type: Number,
+  })
+  totalPages: number;
+
+  @ApiProperty({
+    description: "Indicator if there is a next page",
+    example: true,
+    type: Boolean,
+  })
+  hasNext: boolean;
+}
+export class StaffListMetaDto {
+  @ApiProperty({
+    description: "Total number of staff members",
     example: 50,
     type: Number,
   })
@@ -257,7 +295,18 @@ export class StaffListResponseDto {
 
   @ApiProperty({
     description: "Pagination metadata",
-    type: ResidentListMetaDto,
+    type: StaffListMetaDto,
   })
-  meta: ResidentListMetaDto;
+  meta: StaffListMetaDto;
 }
+
+export const ResidentApiResponseDto = createApiResponseDto(ResidentResponseDto);
+export const StaffApiResponseDto = createApiResponseDto(StaffResponseDto);
+export const ResidentApprovedApiResponseDto = createApiResponseDto(ResidentApprovedResponseDto);
+export const ResidentRejectApiResponseDto = createApiResponseDto(ResidentRejectResponseDto);
+export const UpdateUnitApiResponseDto = createApiResponseDto(UpdateUnitResponseDto);
+export const UpdateProfileApiResponseDto = createApiResponseDto(UpdateProfileResponseDto);
+
+// Paginated Response DTOs
+export const ResidentListApiResponseDto = createPaginatedResponseDto(ResidentResponseDto);
+export const StaffListApiResponseDto = createPaginatedResponseDto(StaffResponseDto);

@@ -23,13 +23,12 @@ import {
   ApiQuery,
   ApiResponse,
   ApiBearerAuth,
-  IntersectionType,
   ApiConsumes,
 } from "@nestjs/swagger";
 import { CreateStaffDto } from "./dto/create-staff.dto";
 import { ReqUser } from "src/auth/decorators/req-user.decorator";
 import { RequestUser } from "src/auth/interfaces/auth.interface";
-import { ProfileImageDto, UpdateProfileDto } from "./dto/update-profile.dto";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { UpdateUnitDto } from "./dto/update-unit.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
@@ -40,8 +39,15 @@ import {
   UpdateUnitResponseDto,
   ResidentApprovedResponseDto,
   UpdateProfileResponseDto,
+  StaffApiResponseDto,
+  ResidentApprovedApiResponseDto,
+  ResidentRejectApiResponseDto,
+  UpdateUnitApiResponseDto,
+  UpdateProfileApiResponseDto,
+  ResidentListApiResponseDto,
+  StaffListApiResponseDto,
 } from "src/common/responses/user-response.dto";
-import { UserResponseDto } from "src/common/responses/auth-response.dto";
+import { GetMeApiResponseDto, UserResponseDto } from "src/common/responses/auth-response.dto";
 import {
   UnauthorizedResponseDto,
   ValidationErrorResponseDto,
@@ -67,7 +73,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "User profile retrieved successfully",
-    type: UserResponseDto,
+    type: GetMeApiResponseDto,
   })
   @ApiResponse({
     status: 401,
@@ -90,7 +96,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Profile updated successfully",
-    type: IntersectionType(UpdateProfileResponseDto, ProfileImageDto),
+    type: UpdateProfileApiResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -129,7 +135,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Unit number updated successfully",
-    type: UpdateUnitResponseDto,
+    type: UpdateUnitApiResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -161,7 +167,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident approved successfully",
-    type: ResidentApprovedResponseDto,
+    type: ResidentApprovedApiResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -193,7 +199,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident rejected successfully",
-    type: ResidentRejectResponseDto,
+    type: ResidentRejectApiResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -223,7 +229,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "List of residents retrieved successfully",
-    type: ResidentListResponseDto,
+    type: ResidentListApiResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -248,7 +254,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "List of staff members retrieved successfully",
-    type: StaffListResponseDto,
+    type: StaffListApiResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -269,7 +275,7 @@ export class UsersController {
   @ApiResponse({
     status: 201,
     description: "Staff member created successfully",
-    type: StaffResponseDto,
+    type: StaffApiResponseDto,
   })
   @ApiResponse({
     status: 400,

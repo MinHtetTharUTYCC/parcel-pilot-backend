@@ -23,6 +23,7 @@ import { ConfigService } from "@nestjs/config";
 export class EmailNotificationsProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailNotificationsProcessor.name);
   private resendEmail: string;
+  private receiverEmail: string;
 
   constructor(
     @InjectResend() private readonly resendClient: Resend,
@@ -36,6 +37,13 @@ export class EmailNotificationsProcessor extends WorkerHost {
     if (!this.resendEmail) {
       const errorMsg =
         "RESEND_EMAIL is not configured. Please set it in environment variables.";
+      this.logger.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+    this.receiverEmail = this.configService.get<string>("RESEND_RECEIVER_EMAIL");
+    if (!this.receiverEmail) {
+      const errorMsg =
+        "RESEND_RECEIVER_EMAIL is not configured. Please set it in environment variables.";
       this.logger.error(errorMsg);
       throw new Error(errorMsg);
     }
@@ -57,7 +65,8 @@ export class EmailNotificationsProcessor extends WorkerHost {
       const { data: EmailSentData, error } =
         await this.resendClient.emails.send({
           from: this.resendEmail,
-          to: residentEmail,
+          // to: residentEmail,
+          to: this.configService.get<string>("RESEND_RECEIVER_EMAIL"),
           subject: template.subject,
           html: template.html,
           attachments: template.attachments,
@@ -66,11 +75,11 @@ export class EmailNotificationsProcessor extends WorkerHost {
       if (error) throw error;
 
       this.logger.log(
-        `Email ${EmailSentData.id} sent successfully to ${residentEmail} for ${type}`,
+        `Email ${EmailSentData.id} sent successfully to ${this.receiverEmail} for ${type}`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to send email to ${residentEmail}: ${error.message} `,
+        `Failed to send email to ${this.receiverEmail}: ${error.message} `,
         error.stack,
       );
       throw error; // BULL WILL RETRY

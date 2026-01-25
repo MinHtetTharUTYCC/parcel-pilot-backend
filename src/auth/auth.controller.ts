@@ -24,8 +24,9 @@ import {
 } from "@nestjs/swagger";
 import {
   LoginResponseDto,
-  SignupResponseDto,
-  LogoutResponseDto,
+  LogoutApiResponseDto,
+  SignupApiResponseDto,
+  LoginApiResponseDto,
 } from "src/common/responses/auth-response.dto";
 import {
   UnauthorizedResponseDto,
@@ -37,11 +38,13 @@ import { Auth } from "src/auth/decorators/auth.decorator";
 const isProd = process.env.NODE_ENV === "production";
 
 @ApiTags("Auth")
+@UseInterceptors(SuccessResponseInterceptor)
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post("/login")
+  @UseInterceptors(SuccessResponseInterceptor)
   @ApiOperation({
     summary: "User Login",
     description:
@@ -55,7 +58,7 @@ export class AuthController {
     status: 200,
     description:
       "Login successful. Access token returned, refresh token set in cookie.",
-    type: LoginResponseDto,
+    type: LoginApiResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -70,7 +73,7 @@ export class AuthController {
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<LoginResponseDto> {
     const { accessToken, refreshToken, user } =
       await this.authService.login(dto);
 
@@ -94,7 +97,6 @@ export class AuthController {
   }
 
   @Post("signup")
-  @UseInterceptors(SuccessResponseInterceptor)
   @ApiOperation({
     summary: "User Registration",
     description:
@@ -107,14 +109,14 @@ export class AuthController {
   @ApiResponse({
     status: 201,
     description: "User registered successfully",
-    type: SignupResponseDto,
+    type: SignupApiResponseDto,
   })
   @ApiResponse({
     status: 400,
     description: "Validation error or email already exists",
     type: ValidationErrorResponseDto,
   })
-  async signup(@Body() dto: SignupDto) {
+  async signup(@Body() dto: SignupDto): Promise<string> {
     return this.authService.signup(dto);
   }
 
@@ -128,7 +130,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: "New access token generated successfully",
-    type: LoginResponseDto,
+    type: LoginApiResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -178,7 +180,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: "Logout successful",
-    type: LogoutResponseDto,
+    type: LogoutApiResponseDto,
   })
   @ApiResponse({
     status: 401,
@@ -188,7 +190,7 @@ export class AuthController {
   async logout(
     @ReqUser() me: authInterfaces.RequestUser,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<string> {
     const userId = me.sub;
 
     // clear refreshToken at DB
@@ -202,6 +204,6 @@ export class AuthController {
       path: "/",
     });
 
-    return { success: true, message: "Logged out successfully" };
+    return "Logged out successfully";
   }
 }
