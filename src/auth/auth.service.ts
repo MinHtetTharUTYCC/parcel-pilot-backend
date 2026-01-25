@@ -20,7 +20,7 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly usersService: UsersService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async getTokens(userId: string, name: string, email: string, role: string) {
     const payload: authInterfaces.JwtPayload = {
@@ -93,7 +93,7 @@ export class AuthService {
 
     this.logger.log(`User registered: ${newUser.id}`);
 
-    return { success: true, message: "Created account successfully. Wait for approval" };
+    return "Created account successfully. Wait for approval";
   }
 
   async refreshTokens(oldRefreshToken: string) {

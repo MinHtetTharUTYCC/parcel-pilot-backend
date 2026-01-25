@@ -21,6 +21,7 @@ import { CloudflareR2Service, ImageUploadOptions } from 'src/cloudflare-r2/cloud
 import { UpdateUnitDto } from './dto/update-unit.dto';
 import { ResidentApprovedResponseDto, ResidentListResponseDto, ResidentRejectResponseDto, StaffListResponseDto, StaffResponseDto, UpdateProfileResponseDto } from 'src/common/responses/user-response.dto';
 import { StaffFilterDto } from './dto/staff-filter.dto';
+import { UserResponseDto } from 'src/common/responses/auth-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -126,7 +127,7 @@ export class UsersService {
     });
   }
 
-  async getMe(userId: string) {
+  async getMe(userId: string): Promise<UserResponseDto> {
     const user = await this.databaseService.user.findUnique({
       where: {
         id: userId,

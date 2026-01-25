@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
-
+import { createApiResponseDto } from "src/shared/types/responses/api-response.dto";
 
 export class UserResponseDto {
   @ApiProperty({
@@ -31,11 +31,12 @@ export class UserResponseDto {
     type: String,
   })
   role: UserRole;
-  
+
   @ApiProperty({
     description: "User profile image url",
-    example: "https://s2/img1.jpg",
+    example: "https://example.com/images/john-doe.jpg",
     type: String,
+    nullable: true,
   })
   imageUrl: string | null;
 }
@@ -61,34 +62,40 @@ export class LoginResponseDto {
   })
   user: UserResponseDto;
 }
-export class SignupResponseDto {
-  @ApiProperty({
-    description: "Signup success indicator",
-    example: true,
-    type: Boolean,
-  })
-  success: boolean;
 
+
+// Auto-generated API Response DTOs - no repetition!
+export const GetMeApiResponseDto = createApiResponseDto(UserResponseDto);
+export const LoginApiResponseDto = createApiResponseDto(LoginResponseDto);
+
+// For endpoints that return simple strings, the interceptor wraps them automatically
+// We just need to tell OpenAPI what the wrapped response looks like
+export class StringResponseDto {
   @ApiProperty({
-    description: "Signup success message",
-    example: "Signed up successfully. Wait for approval",
+    description: "Response message",
+    example: "Operation successful",
     type: String,
   })
   message: string;
 }
 
-export class LogoutResponseDto {
+export class LogoutMessageDto {
   @ApiProperty({
-    description: "Logout success indicator",
-    example: true,
-    type: Boolean,
-  })
-  success: boolean;
-
-  @ApiProperty({
-    description: "Logout message",
+    description: "Logout confirmation message",
     example: "Logged out successfully",
     type: String,
   })
   message: string;
 }
+
+export class SignupMessageDto {
+  @ApiProperty({
+    description: "Signup confirmation message",
+    example: "Created account successfully. Wait for approval",
+    type: String,
+  })
+  message: string;
+}
+
+export const LogoutApiResponseDto = createApiResponseDto(LogoutMessageDto);
+export const SignupApiResponseDto = createApiResponseDto(SignupMessageDto);
