@@ -16,7 +16,6 @@ import { UsersService } from "./users.service";
 import { SuccessResponseInterceptor } from "src/common/interceptors/success-response.interceptor";
 import { Auth } from "src/auth/decorators/auth.decorator";
 import { ResidentFilterDto } from "./dto/resident-filter.dto";
-import { PaginationDto } from "src/common/dto/pagination.dto";
 import {
   ApiTags,
   ApiOperation,
@@ -24,18 +23,23 @@ import {
   ApiQuery,
   ApiResponse,
   ApiBearerAuth,
+  IntersectionType,
+  ApiConsumes,
 } from "@nestjs/swagger";
 import { CreateStaffDto } from "./dto/create-staff.dto";
 import { ReqUser } from "src/auth/decorators/req-user.decorator";
 import { RequestUser } from "src/auth/interfaces/auth.interface";
-import { UpdateProfileDto } from "./dto/update-profile.dto";
+import { ProfileImageDto, UpdateProfileDto } from "./dto/update-profile.dto";
 import { UpdateUnitDto } from "./dto/update-unit.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  ResidentResponseDto,
   StaffResponseDto,
   ResidentListResponseDto,
   StaffListResponseDto,
+  ResidentRejectResponseDto,
+  UpdateUnitResponseDto,
+  ResidentApprovedResponseDto,
+  UpdateProfileResponseDto,
 } from "src/common/responses/user-response.dto";
 import { UserResponseDto } from "src/common/responses/auth-response.dto";
 import {
@@ -44,6 +48,7 @@ import {
   NotFoundResponseDto,
   ForbiddenResponseDto,
 } from "src/common/responses/error-response.dto";
+import { StaffFilterDto } from "./dto/staff-filter.dto";
 
 @ApiTags("Users")
 @ApiBearerAuth("access-token")
@@ -69,11 +74,12 @@ export class UsersController {
     description: "Unauthorized - no valid token provided",
     type: UnauthorizedResponseDto,
   })
-  getMe(@ReqUser() user: RequestUser) {
+  getMe(@ReqUser() user: RequestUser): Promise<UserResponseDto> {
     return this.usersService.getMe(user.sub);
   }
 
   @Patch("update")
+  @ApiConsumes("multipart/form-data")
   @Auth("MANAGER", "STAFF", "RESIDENT")
   @UseInterceptors(FileInterceptor("image"))
   @ApiOperation({
@@ -84,7 +90,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Profile updated successfully",
-    type: UserResponseDto,
+    type: IntersectionType(UpdateProfileResponseDto, ProfileImageDto),
   })
   @ApiResponse({
     status: 400,
@@ -109,7 +115,7 @@ export class UsersController {
     )
     file: Express.Multer.File,
     @Body() dto: UpdateProfileDto,
-  ) {
+  ): Promise<UpdateProfileResponseDto> {
     return this.usersService.updateProfile(user.sub, file, dto);
   }
 
@@ -123,7 +129,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Unit number updated successfully",
-    type: ResidentResponseDto,
+    type: UpdateUnitResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -135,7 +141,7 @@ export class UsersController {
     description: "Forbidden - insufficient permissions",
     type: ForbiddenResponseDto,
   })
-  updateUnit(@Body() dto: UpdateUnitDto) {
+  updateUnit(@Body() dto: UpdateUnitDto): Promise<UpdateUnitResponseDto> {
     return this.usersService.updateUnit(dto);
   }
 
@@ -155,7 +161,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident approved successfully",
-    type: ResidentResponseDto,
+    type: ResidentApprovedResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -167,7 +173,7 @@ export class UsersController {
     description: "Forbidden - insufficient permissions",
     type: ForbiddenResponseDto,
   })
-  approveResident(@Param("id") id: string) {
+  approveResident(@Param("id") id: string): Promise<ResidentApprovedResponseDto> {
     return this.usersService.approveResident(id);
   }
 
@@ -187,7 +193,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident rejected successfully",
-    type: ResidentResponseDto,
+    type: ResidentRejectResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -199,7 +205,7 @@ export class UsersController {
     description: "Forbidden - insufficient permissions",
     type: ForbiddenResponseDto,
   })
-  rejectResident(@Param("id") id: string) {
+  rejectResident(@Param("id") id: string): Promise<ResidentRejectResponseDto> {
     return this.usersService.rejectResident(id);
   }
 
@@ -224,7 +230,7 @@ export class UsersController {
     description: "Forbidden - insufficient permissions",
     type: ForbiddenResponseDto,
   })
-  getResidents(@Query() dto: ResidentFilterDto) {
+  getResidents(@Query() dto: ResidentFilterDto): Promise<ResidentListResponseDto> {
     return this.usersService.getResidents(dto);
   }
 
@@ -236,8 +242,8 @@ export class UsersController {
       "Retrieve a list of staff members. Only MANAGER role can access this",
   })
   @ApiQuery({
-    type: PaginationDto,
-    description: "Pagination options for staff list",
+    type: StaffFilterDto,
+    description: "Filter and pagination options for staff list",
   })
   @ApiResponse({
     status: 200,
@@ -249,7 +255,7 @@ export class UsersController {
     description: "Forbidden - only MANAGER role can access",
     type: ForbiddenResponseDto,
   })
-  getStaffs(@Query() dto: PaginationDto) {
+  getStaffs(@Query() dto: StaffFilterDto): Promise<StaffListResponseDto> {
     return this.usersService.getStaffs(dto);
   }
 
@@ -275,7 +281,7 @@ export class UsersController {
     description: "Forbidden - only MANAGER role can create staff",
     type: ForbiddenResponseDto,
   })
-  createStaff(@Body() dto: CreateStaffDto) {
+  createStaff(@Body() dto: CreateStaffDto): Promise<StaffResponseDto> {
     return this.usersService.createStaff(dto);
   }
 }

@@ -11,7 +11,6 @@ import { SignupDto } from 'src/auth/dto/signup.dto';
 import { DatabaseService } from 'src/database/database.service';
 import * as bcrypt from 'bcrypt';
 import { ResidentFilterDto } from './dto/resident-filter.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ResidentApprovedEvent } from 'src/notifications/events/resident-approved.event';
 import { events } from 'src/common/consts/event-names';
@@ -20,6 +19,8 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CloudflareR2Service, ImageUploadOptions } from 'src/cloudflare-r2/cloudflareR2.service';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { ResidentApprovedResponseDto, ResidentListResponseDto, ResidentRejectResponseDto, StaffListResponseDto, StaffResponseDto, UpdateProfileResponseDto } from 'src/common/responses/user-response.dto';
+import { StaffFilterDto } from './dto/staff-filter.dto';
 
 @Injectable()
 export class UsersService {
@@ -140,6 +141,9 @@ export class UsersService {
     });
 
     if (!user) throw new NotFoundException('User not found');
+
+    this.checkAccountStatus(user.role);
+
     return user;
   }
 
@@ -159,28 +163,26 @@ export class UsersService {
         throw new ForbiddenException(
           'Account pending approval. You will be notified once approved',
         );
+      case 'RESIDENT_REJECTED':
+        throw new ForbiddenException('Account has been rejected. Contact support.');
     }
-
-    // TODO: Ban or reject
   }
 
-  async approveResident(residentId: string) {
+  async approveResident(residentId: string): Promise<ResidentApprovedResponseDto> {
     try {
-      // TODO: uncomment
-      // const user = await this.databaseService.user.findUnique({
-      //     where
-      //         : { id: residentId },
-      //     select: { role: true }
-      // })
+      const user = await this.databaseService.user.findUnique({
+        where: { id: residentId },
+        select: { role: true }
+      })
 
-      // switch (user.role) {
-      //     case "RESIDENT":
-      //         throw new ConflictException("Resident already approved");
-      //     case "STAFF":
-      //     case "MANAGER":
-      //         throw new BadRequestException("Only approved residents");
+      switch (user.role) {
+        case "RESIDENT":
+          throw new ConflictException("Resident already approved");
+        case "STAFF":
+        case "MANAGER":
+          throw new BadRequestException("Only approved residents");
 
-      // }
+      }
 
       const resident = await this.databaseService.user.update({
         where: { id: residentId },
@@ -209,7 +211,7 @@ export class UsersService {
 
       this.eventEmitter.emit(events.approved, approvedEvent);
 
-      return { residentId };
+      return { residentId, message: 'Resident approved successfully' };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new NotFoundException('User record not found');
@@ -218,7 +220,7 @@ export class UsersService {
     }
   }
 
-  async rejectResident(residentId: string) {
+  async rejectResident(residentId: string): Promise<ResidentRejectResponseDto> {
     try {
       const user = await this.databaseService.user.findUnique({
         where: { id: residentId },
@@ -266,7 +268,7 @@ export class UsersService {
 
       this.eventEmitter.emit(events.rejected, rejectedEvent);
 
-      return { residentId };
+      return { residentId, message: 'Resident rejected successfully' };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new NotFoundException('User record not found');
@@ -275,12 +277,18 @@ export class UsersService {
     }
   }
 
-  async getResidents(dto: ResidentFilterDto) {
-    const { page, limit, pending } = dto;
+  async getResidents(dto: ResidentFilterDto): Promise<ResidentListResponseDto> {
+    const { q, page, limit, role } = dto;
 
-    const whereCondition: Prisma.UserWhereInput = {
-      role: pending ? 'RESIDENT_PENDING' : 'RESIDENT',
-    };
+    let whereCondition: Prisma.UserWhereInput = {};
+
+    whereCondition.role = role ? role : { in: ['RESIDENT', 'RESIDENT_PENDING', 'RESIDENT_REJECTED'] };
+    whereCondition.OR = q ? [
+      { id: { contains: q, mode: 'insensitive' } },
+      { name: { contains: q, mode: 'insensitive' } },
+      { email: { contains: q, mode: 'insensitive' } },
+      { unitNumber: { contains: q, mode: 'insensitive' } },
+    ] : undefined;
 
     const [totalResidents, residents] = await Promise.all([
       this.databaseService.user.count({
@@ -295,6 +303,7 @@ export class UsersService {
           email: true,
           name: true,
           phone: true,
+          role: true,
           imageUrl: true,
           unitNumber: true,
           _count: {
@@ -307,7 +316,7 @@ export class UsersService {
     ]);
 
     const totalPages = Math.ceil(totalResidents / limit);
-    const hasNext = residents.length > limit;
+    const hasNext = residents.length >= limit;
 
     return {
       data: residents,
@@ -315,8 +324,8 @@ export class UsersService {
     };
   }
 
-  async getStaffs(dto: PaginationDto) {
-    const { page, limit } = dto;
+  async getStaffs(dto: StaffFilterDto): Promise<StaffListResponseDto> {
+    const { q, page, limit } = dto;
 
     const [totalStaffs, staffs] = await Promise.all([
       this.databaseService.user.count({ where: { role: 'STAFF' } }),
@@ -330,6 +339,7 @@ export class UsersService {
           name: true,
           phone: true,
           imageUrl: true,
+          createdAt: true,
           _count: {
             select: {
               managedParcels: true,
@@ -339,16 +349,25 @@ export class UsersService {
       }),
     ]);
 
+    const mappedStaffs: StaffResponseDto[] = staffs.map(staff => {
+      const { createdAt, _count, ...rest } = staff;
+      return {
+        ...rest,
+        createdAt: createdAt.toISOString(),
+        managedParcelsCount: _count.managedParcels,
+      }
+    });
+
     const hasNext = staffs.length >= limit;
     const totalPages = Math.ceil(totalStaffs / limit);
 
     return {
-      data: staffs,
+      data: mappedStaffs,
       meta: { page, limit, totalPages, total: totalStaffs, hasNext },
     };
   }
 
-  async createStaff(dto: CreateStaffDto) {
+  async createStaff(dto: CreateStaffDto): Promise<StaffResponseDto> {
     try {
       const pwdHashed = await bcrypt.hash(dto.password, 10);
 
@@ -368,7 +387,8 @@ export class UsersService {
         },
       });
 
-      return { staff };
+      const { createdAt, ...rest } = staff;
+      return { ...rest, managedParcelsCount: 0, createdAt: createdAt.toISOString() };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException('Email already exists');
@@ -377,7 +397,8 @@ export class UsersService {
     }
   }
 
-  async updateProfile(userId: string, file: Express.Multer.File = null, dto: UpdateProfileDto) {
+  // general profile update
+  async updateProfile(userId: string, file: Express.Multer.File = null, dto: UpdateProfileDto): Promise<UpdateProfileResponseDto> {
     const options: ImageUploadOptions = {
       folder: 'avatars',
       maxSize: 10 * 1024 * 1024,
@@ -391,6 +412,7 @@ export class UsersService {
       where: { id: userId },
       data: {
         name: dto.name,
+        phone: dto.phone,
         ...(uploadResult && {
           imageKey: uploadResult.key,
           imageUrl: uploadResult.url,
@@ -399,15 +421,12 @@ export class UsersService {
       select: {
         id: true,
         name: true,
+        phone: true,
         imageUrl: true,
       },
     });
 
-    return {
-      id: updateUser.id,
-      name: updateUser.name,
-      imageUrl: updateUser.imageUrl,
-    };
+    return updateUser;
   }
 
   async updateUnit(dto: UpdateUnitDto) {
@@ -422,6 +441,6 @@ export class UsersService {
       },
     });
 
-    return { id: updateUser.id, unitNumber: updateUser.unitNumber };
+    return { residentId: updateUser.id, unitNumber: updateUser.unitNumber };
   }
 }

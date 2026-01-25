@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { UserRole } from "@prisma/client";
 
 export class ResidentResponseDto {
   @ApiProperty({
@@ -22,12 +23,6 @@ export class ResidentResponseDto {
   })
   name: string;
 
-  @ApiProperty({
-    description: "Unit number",
-    example: "A-101",
-    type: String,
-  })
-  unitNumber: string;
 
   @ApiProperty({
     description: "Phone number",
@@ -38,19 +33,27 @@ export class ResidentResponseDto {
   phone?: string;
 
   @ApiProperty({
-    description: "Approval status",
-    enum: ["PENDING", "APPROVED", "REJECTED"],
-    example: "APPROVED",
+    description: "Unit number",
+    example: "A-101",
     type: String,
   })
-  status: string;
+  unitNumber: string;
 
   @ApiProperty({
     description: "User role",
-    example: "RESIDENT",
+    example: UserRole.RESIDENT_PENDING,
+    enum: UserRole,
     type: String,
   })
-  role: string;
+  role: UserRole;
+
+  @ApiProperty({
+    description: "profile image URL",
+    example: "https://example.com/images/jane-smith.jpg",
+    type: String,
+    nullable: true,
+  })
+  imageUrl?: string;
 
   @ApiProperty({
     description: "Rejection timestamp",
@@ -59,7 +62,16 @@ export class ResidentResponseDto {
     nullable: true,
   })
   rejectedAt?: string;
+
+  @ApiProperty({
+    description: "Approval timestamp",
+    example: "2026-01-15T10:00:00Z",
+    type: String,
+    nullable: true,
+  })
+  approvedAt?: string;
 }
+
 
 export class StaffResponseDto {
   @ApiProperty({
@@ -78,26 +90,111 @@ export class StaffResponseDto {
 
   @ApiProperty({
     description: "Staff name",
-    example: "Admin User",
+    example: "Jane Smith",
     type: String,
   })
   name: string;
 
   @ApiProperty({
-    description: "User role",
-    enum: ["STAFF", "MANAGER"],
-    example: "STAFF",
+    description: "profile image URL",
+    example: "https://example.com/images/jane-smith.jpg",
     type: String,
+    nullable: true,
   })
-  role: string;
+  imageUrl?: string;
 
   @ApiProperty({
-    description: "Approval status",
-    enum: ["PENDING", "APPROVED", "REJECTED"],
-    example: "APPROVED",
+    description: 'Number of parcels managed by the staff',
+    example: 42,
+    type: Number,
+  })
+  managedParcelsCount: number;
+
+  @ApiProperty({
+    description: "Creation timestamp",
+    example: "2026-01-10T09:30:00Z",
     type: String,
   })
-  status: string;
+  createdAt: string;
+
+}
+
+export class ResidentApprovedResponseDto {
+  @ApiProperty({
+    description: "Resident user ID",
+    example: "resident-id-123",
+    type: String,
+  })
+  residentId: string;
+
+  @ApiProperty({
+    description: "Approval message",
+    example: "Resident application has been approved successfully.",
+    type: String,
+  })
+  message: string;
+}
+export class ResidentRejectResponseDto {
+  @ApiProperty({
+    description: "Resident user ID",
+    example: "resident-id-123",
+    type: String,
+  })
+  residentId: string;
+
+  @ApiProperty({
+    description: "Rejection message",
+    example: "Resident application has been rejected due to incomplete documents.",
+    type: String,
+  })
+  message: string;
+}
+
+export class UpdateUnitResponseDto {
+  @ApiProperty({
+    description: "Resident user ID",
+    example: "resident-id-123",
+    type: String,
+  })
+  residentId: string;
+
+  @ApiProperty({
+    description: "Updated unit number",
+    example: "A-101",
+    type: String,
+  })
+  unitNumber: string;
+}
+export class UpdateProfileResponseDto {
+  @ApiProperty({
+    description: "User ID",
+    example: "user-id-123",
+    type: String,
+  })
+  id: String;
+
+  @ApiProperty({
+    description: "User name",
+    example: "John Doe",
+    type: String,
+  })
+  name: String;
+
+  @ApiProperty({
+    description: "Phone number",
+    example: "+1234567890",
+    type: String,
+    nullable: true,
+  })
+  phone: String | null;
+
+  @ApiProperty({
+    description: "Profile image URL",
+    example: "https://example.com/images/john-doe.jpg",
+    type: String,
+    nullable: true,
+  })
+  imageUrl: String | null;
 }
 
 export class ResidentListMetaDto {
