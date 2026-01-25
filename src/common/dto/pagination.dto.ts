@@ -6,12 +6,13 @@ export class PaginationDto {
   @ApiPropertyOptional({
     description: "Current page number for pagination",
     type: Number,
+    default: 1,
     example: 1,
   })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  readonly page?: number;
+  readonly page?: number = 1;
 
   @ApiPropertyOptional({
     description: "Number of records to retrieve per page",

@@ -50,5 +50,5 @@ export class CreateParcelDto {
 
 export class ParcelImageDto {
   @ApiProperty({ type: 'string', format: 'binary' })
-  image: any; // The key 'image' must match FileInterceptor("image")
+  image: any;
 }
