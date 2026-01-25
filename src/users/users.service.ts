@@ -11,7 +11,6 @@ import { SignupDto } from 'src/auth/dto/signup.dto';
 import { DatabaseService } from 'src/database/database.service';
 import * as bcrypt from 'bcrypt';
 import { ResidentFilterDto } from './dto/resident-filter.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ResidentApprovedEvent } from 'src/notifications/events/resident-approved.event';
 import { events } from 'src/common/consts/event-names';
@@ -20,7 +19,7 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CloudflareR2Service, ImageUploadOptions } from 'src/cloudflare-r2/cloudflareR2.service';
 import { UpdateUnitDto } from './dto/update-unit.dto';
-import { ResidentListResponseDto, ResidentRejectResponseDto, StaffListResponseDto, StaffResponseDto, UpdateProfileResponseDto } from 'src/common/responses/user-response.dto';
+import { ResidentApprovedResponseDto, ResidentListResponseDto, ResidentRejectResponseDto, StaffListResponseDto, StaffResponseDto, UpdateProfileResponseDto } from 'src/common/responses/user-response.dto';
 import { StaffFilterDto } from './dto/staff-filter.dto';
 
 @Injectable()
@@ -142,6 +141,9 @@ export class UsersService {
     });
 
     if (!user) throw new NotFoundException('User not found');
+
+    this.checkAccountStatus(user.role);
+
     return user;
   }
 
@@ -161,16 +163,15 @@ export class UsersService {
         throw new ForbiddenException(
           'Account pending approval. You will be notified once approved',
         );
+      case 'RESIDENT_REJECTED':
+        throw new ForbiddenException('Account has been rejected. Contact support.');
     }
-
-    // TODO: Ban or reject
   }
 
-  async approveResident(residentId: string) {
+  async approveResident(residentId: string): Promise<ResidentApprovedResponseDto> {
     try {
       const user = await this.databaseService.user.findUnique({
-        where
-          : { id: residentId },
+        where: { id: residentId },
         select: { role: true }
       })
 

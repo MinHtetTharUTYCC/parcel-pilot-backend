@@ -16,7 +16,6 @@ import { UsersService } from "./users.service";
 import { SuccessResponseInterceptor } from "src/common/interceptors/success-response.interceptor";
 import { Auth } from "src/auth/decorators/auth.decorator";
 import { ResidentFilterDto } from "./dto/resident-filter.dto";
-import { PaginationDto } from "src/common/dto/pagination.dto";
 import {
   ApiTags,
   ApiOperation,
@@ -34,7 +33,6 @@ import { ProfileImageDto, UpdateProfileDto } from "./dto/update-profile.dto";
 import { UpdateUnitDto } from "./dto/update-unit.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  ResidentResponseDto,
   StaffResponseDto,
   ResidentListResponseDto,
   StaffListResponseDto,
@@ -76,7 +74,7 @@ export class UsersController {
     description: "Unauthorized - no valid token provided",
     type: UnauthorizedResponseDto,
   })
-  getMe(@ReqUser() user: RequestUser) {
+  getMe(@ReqUser() user: RequestUser): Promise<UserResponseDto> {
     return this.usersService.getMe(user.sub);
   }
 

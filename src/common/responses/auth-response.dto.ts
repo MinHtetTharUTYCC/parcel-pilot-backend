@@ -1,4 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { UserRole } from "@prisma/client";
+
 
 export class UserResponseDto {
   @ApiProperty({
@@ -23,28 +25,12 @@ export class UserResponseDto {
   name: string;
 
   @ApiProperty({
-    description: "Unit/Apartment number for residents",
-    example: "A-101",
-    type: String,
-    nullable: true,
-  })
-  unitNumber?: string;
-
-  @ApiProperty({
     description: "User role - RESIDENT, STAFF, or MANAGER",
-    enum: ["RESIDENT", "STAFF", "MANAGER"],
+    enum: UserRole,
     example: "RESIDENT",
     type: String,
   })
-  role: string;
-
-  @ApiProperty({
-    description: "User approval status - PENDING, APPROVED, or REJECTED",
-    enum: ["PENDING", "APPROVED", "REJECTED"],
-    example: "APPROVED",
-    type: String,
-  })
-  status: string;
+  role: UserRole;
 }
 
 export class LoginResponseDto {
@@ -69,7 +55,7 @@ export class LoginResponseDto {
   user: UserResponseDto;
 }
 export class SignupResponseDto {
-   @ApiProperty({
+  @ApiProperty({
     description: "Signup success indicator",
     example: true,
     type: Boolean,
