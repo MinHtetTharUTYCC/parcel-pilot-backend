@@ -31,6 +31,13 @@ export class UserResponseDto {
     type: String,
   })
   role: UserRole;
+  
+  @ApiProperty({
+    description: "User profile image url",
+    example: "https://s2/img1.jpg",
+    type: String,
+  })
+  imageUrl: string | null;
 }
 
 export class LoginResponseDto {
