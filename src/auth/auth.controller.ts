@@ -86,7 +86,10 @@ export class AuthController {
     return {
       access_token: accessToken,
       token_type: "Bearer",
-      user,
+      user: {
+        ...user,
+        imageUrl: null,
+      },
     };
   }
 
@@ -163,8 +166,8 @@ export class AuthController {
       user: refreshedUser,
     };
   }
-  
-  @Auth('MANAGER','STAFF','RESIDENT')
+
+  @Auth('MANAGER', 'STAFF', 'RESIDENT')
   @Post("/logout")
   @ApiBearerAuth("access-token")
   @ApiOperation({

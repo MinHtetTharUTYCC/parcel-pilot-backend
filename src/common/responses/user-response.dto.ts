@@ -171,14 +171,14 @@ export class UpdateProfileResponseDto {
     example: "user-id-123",
     type: String,
   })
-  id: String;
+  id: string;
 
   @ApiProperty({
     description: "User name",
     example: "John Doe",
     type: String,
   })
-  name: String;
+  name: string;
 
   @ApiProperty({
     description: "Phone number",
@@ -186,7 +186,7 @@ export class UpdateProfileResponseDto {
     type: String,
     nullable: true,
   })
-  phone: String | null;
+  phone: string | null;
 
   @ApiProperty({
     description: "Profile image URL",
@@ -194,7 +194,7 @@ export class UpdateProfileResponseDto {
     type: String,
     nullable: true,
   })
-  imageUrl: String | null;
+  imageUrl: string | null;
 }
 
 export class ResidentListMetaDto {
