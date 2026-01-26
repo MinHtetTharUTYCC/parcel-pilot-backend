@@ -68,7 +68,6 @@ export class PaginationMetaDto {
 export class PaginatedApiResponseDto<T = any> extends ApiResponseDto<T[]> {
     @ApiProperty({
         description: "Array of items",
-        isArray: true,
     })
     data: T[];
 
@@ -102,7 +101,7 @@ export function createPaginatedResponseDto<T>(itemType: new () => T) {
     class TypedPaginatedResponseDto extends PaginatedApiResponseDto<T> {
         @ApiProperty({
             description: "Array of items",
-            type: [itemType],
+            type: itemType,
             isArray: true,
         })
         data: T[];

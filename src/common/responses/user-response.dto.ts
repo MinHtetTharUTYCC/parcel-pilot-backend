@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
-import { createApiResponseDto, createPaginatedResponseDto } from "../../shared/types/responses/api-response.dto";
-import { UserResponseDto } from "./auth-response.dto";
+import { createApiResponseDto, createPaginatedResponseDto } from "../../shared/types/responses/api-response.dto"
 
 export class ResidentResponseDto {
   @ApiProperty({
@@ -73,7 +72,6 @@ export class ResidentResponseDto {
   })
   approvedAt?: string;
 }
-
 
 export class StaffResponseDto {
   @ApiProperty({

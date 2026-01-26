@@ -286,3 +286,4 @@ export class ParcelReturnResponseDto {
   })
   parcelId: string;
 }
+

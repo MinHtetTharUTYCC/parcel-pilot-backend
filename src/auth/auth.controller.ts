@@ -24,9 +24,8 @@ import {
 } from "@nestjs/swagger";
 import {
   LoginResponseDto,
-  LogoutApiResponseDto,
-  SignupApiResponseDto,
-  LoginApiResponseDto,
+  LogoutMessageDto,
+  SignupMessageDto,
 } from "src/common/responses/auth-response.dto";
 import {
   UnauthorizedResponseDto,
@@ -58,7 +57,7 @@ export class AuthController {
     status: 200,
     description:
       "Login successful. Access token returned, refresh token set in cookie.",
-    type: LoginApiResponseDto,
+    type: LoginResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -109,7 +108,7 @@ export class AuthController {
   @ApiResponse({
     status: 201,
     description: "User registered successfully",
-    type: SignupApiResponseDto,
+    type: SignupMessageDto,
   })
   @ApiResponse({
     status: 400,
@@ -130,7 +129,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: "New access token generated successfully",
-    type: LoginApiResponseDto,
+    type: LoginResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -180,7 +179,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: "Logout successful",
-    type: LogoutApiResponseDto,
+    type: LogoutMessageDto,
   })
   @ApiResponse({
     status: 401,

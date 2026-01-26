@@ -39,15 +39,8 @@ import {
   UpdateUnitResponseDto,
   ResidentApprovedResponseDto,
   UpdateProfileResponseDto,
-  StaffApiResponseDto,
-  ResidentApprovedApiResponseDto,
-  ResidentRejectApiResponseDto,
-  UpdateUnitApiResponseDto,
-  UpdateProfileApiResponseDto,
-  ResidentListApiResponseDto,
-  StaffListApiResponseDto,
 } from "src/common/responses/user-response.dto";
-import { GetMeApiResponseDto, UserResponseDto } from "src/common/responses/auth-response.dto";
+import { UserResponseDto } from "src/common/responses/auth-response.dto";
 import {
   UnauthorizedResponseDto,
   ValidationErrorResponseDto,
@@ -73,7 +66,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "User profile retrieved successfully",
-    type: GetMeApiResponseDto,
+    type: UserResponseDto,
   })
   @ApiResponse({
     status: 401,
@@ -96,7 +89,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Profile updated successfully",
-    type: UpdateProfileApiResponseDto,
+    type: UpdateProfileResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -135,7 +128,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Unit number updated successfully",
-    type: UpdateUnitApiResponseDto,
+    type: UpdateUnitResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -167,7 +160,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident approved successfully",
-    type: ResidentApprovedApiResponseDto,
+    type: ResidentApprovedResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -199,7 +192,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "Resident rejected successfully",
-    type: ResidentRejectApiResponseDto,
+    type: ResidentRejectResponseDto,
   })
   @ApiResponse({
     status: 404,
@@ -229,7 +222,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "List of residents retrieved successfully",
-    type: ResidentListApiResponseDto,
+    type: ResidentListResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -254,7 +247,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: "List of staff members retrieved successfully",
-    type: StaffListApiResponseDto,
+    type: StaffListResponseDto,
   })
   @ApiResponse({
     status: 403,
@@ -275,7 +268,7 @@ export class UsersController {
   @ApiResponse({
     status: 201,
     description: "Staff member created successfully",
-    type: StaffApiResponseDto,
+    type: StaffResponseDto,
   })
   @ApiResponse({
     status: 400,
