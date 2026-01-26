@@ -275,7 +275,8 @@ export class StaffListMetaDto {
 export class ResidentListResponseDto {
   @ApiProperty({
     description: "Array of residents",
-    type: [ResidentResponseDto],
+    type: ResidentResponseDto,
+    isArray: true,
   })
   data: ResidentResponseDto[];
 
@@ -289,7 +290,8 @@ export class ResidentListResponseDto {
 export class StaffListResponseDto {
   @ApiProperty({
     description: "Array of staff members",
-    type: [StaffResponseDto],
+    type: StaffResponseDto,
+    isArray: true,
   })
   data: StaffResponseDto[];
 

@@ -84,7 +84,8 @@ export class NotificationListMetaDto {
 export class NotificationListResponseDto {
     @ApiProperty({
         description: "Array of notifications",
-        type: [NotificationDto],
+        type: NotificationDto,
+        isArray: true,
     })
     data: NotificationDto[];
 

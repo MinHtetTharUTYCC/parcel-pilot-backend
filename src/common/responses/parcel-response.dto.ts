@@ -211,7 +211,8 @@ export class ParcelListMetaDto {
 export class ParcelListResponseDto {
   @ApiProperty({
     description: "Array of parcels",
-    type: [ParcelResponseDto],
+    type: ParcelResponseDto,
+    isArray: true,
   })
   data: ParcelResponseDto[];
 
@@ -226,7 +227,8 @@ export class ParcelListResponseDto {
 export class ParcelStaffListResponseDto {
   @ApiProperty({
     description: "Array of parcels with staff information",
-    type: [ParcelStaffResponseDto],
+    type: ParcelStaffResponseDto,
+    isArray: true,
   })
   data: ParcelStaffResponseDto[];
 
